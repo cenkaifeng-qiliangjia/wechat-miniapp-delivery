@@ -1,43 +1,77 @@
 # Wechat Miniapp Delivery
 
-Project-local Codex skill for building, testing, accepting, and releasing WeChat mini program changes.
+Universal WeChat miniapp delivery skill for Codex, Claude Code, and OpenClaw.
 
 ## Repo Layout
 
 ```text
 .
 ├── README.md
-└── .codex/skills/wechat-miniapp-delivery/
-    ├── SKILL.md
-    ├── agents/openai.yaml
-    └── references/
+├── catalog.json
+├── scripts/
+│   ├── install_from_github.py
+│   ├── install_skill.py
+│   └── sync_skill_layout.py
+├── skills/
+│   └── wechat-miniapp-delivery/
+├── .codex/skills/
+└── .claude/skills/
 ```
+
+`skills/wechat-miniapp-delivery` is the canonical source. `.codex/skills` and `.claude/skills` are generated mirrors for repo-local use. `catalog.json` is the lightweight portability manifest for installers and future registries.
 
 ## What This Skill Covers
 
-- Developer, release-manager PM, unit-test, and E2E QA role coordination
-- Plan, implementation, validation, acceptance, preview or upload, and post-release checks
-- High-risk miniapp concerns such as payment, privacy, secrets, CloudBase permissions, observability, and rollback readiness
+- Developer, release-manager PM, unit-test, and E2E QA coordination
+- Tool-oriented miniapp delivery: CI release, unit and E2E automation, CloudBase deployment, and security or compliance gates
+- High-risk concerns such as payment callbacks, privacy guidance, secrets leakage, CloudBase permissions, release fallback, and release observation
 
-## Use It
+## Agent Compatibility
 
-1. Open this repo in Codex, or copy `.codex/skills/wechat-miniapp-delivery` into another repo's `.codex/skills/`.
-2. Ask Codex to use `$wechat-miniapp-delivery` for a miniapp task.
-3. Start with a prompt such as:
-   - `Use $wechat-miniapp-delivery to add status filtering to the order list and prepare a preview release.`
-   - `Use $wechat-miniapp-delivery to validate whether this miniapp version is release-ready.`
-   - `Use $wechat-miniapp-delivery to add payment confirmation, unit tests, and E2E coverage.`
+| Agent surface | Recommended path |
+| --- | --- |
+| OpenClaw | `skills/wechat-miniapp-delivery` |
+| Codex | `.codex/skills/wechat-miniapp-delivery` or GitHub repo-path install from `skills/wechat-miniapp-delivery` |
+| Claude Code | `.claude/skills/wechat-miniapp-delivery` |
 
-## Best-Practice Choices
+## Install From A Local Clone
 
-- Progressive disclosure: `SKILL.md` stays small and detailed material lives in `references/`
-- Explicit trigger language in frontmatter
-- Examples, troubleshooting, and gate-based workflow in the skill body
-- A filled-in handoff example for PM, developer, unit-test, and E2E coordination
-- Repo-level README for GitHub distribution and no README inside the skill folder
-- Project-local `.codex/skills/` path for easy discovery
+- Codex: `python3 scripts/install_skill.py --target codex`
+- Claude Code: `python3 scripts/install_skill.py --target claude`
+- Codex + Claude: `python3 scripts/install_skill.py --target all`
+- OpenClaw into another workspace: `python3 scripts/install_skill.py --target openclaw --dest /path/to/workspace/skills`
+
+OpenClaw users can also just open this repo as a workspace because the canonical skill already lives under `skills/`.
+
+## Install Directly From GitHub
+
+- Codex native repo-path install:
+
+```bash
+python3 "$CODEX_HOME/skills/.system/skill-installer/scripts/install-skill-from-github.py" \
+  --repo cenkaifeng-qiliangjia/wechat-miniapp-delivery \
+  --path skills/wechat-miniapp-delivery
+```
+
+- Generic GitHub bootstrap:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/cenkaifeng-qiliangjia/wechat-miniapp-delivery/main/scripts/install_from_github.py \
+  | python3 - --target all
+```
+
+For OpenClaw target-copy installs, add `--target openclaw --dest /path/to/workspace/skills`.
+
+## Maintainer Workflow
+
+1. Edit only `skills/wechat-miniapp-delivery`.
+2. Run `python3 scripts/sync_skill_layout.py`.
+3. Validate the canonical skill with `python3 "$CODEX_HOME/skills/.system/skill-creator/scripts/quick_validate.py" skills/wechat-miniapp-delivery`.
+4. Smoke-test the install scripts.
+5. Commit the canonical skill plus refreshed mirrors.
 
 ## Source Inputs
 
-- A deep-research report on miniapp engineering, testing, release, and observability
+- `deep-research-report.md`
+- `deep-research-report _V2.md`
 - Anthropic's "The Complete Guide to Building Skills for Claude"
