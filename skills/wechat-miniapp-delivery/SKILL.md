@@ -177,6 +177,7 @@ If a high-risk gate cannot be validated, do not mark the change `publish-ready`.
 
 - Change feature code, cloud functions, and config together.
 - When working in a Taro 4 React project, follow the framework patterns in `references/taro4-react-patterns.md` to avoid common pitfalls.
+- When building or modifying UI, follow the design system and visual standards in `wechat-miniapp-design` skill for token discipline, miniapp CSS constraints, and component patterns.
 - Add test seams while implementing:
   - stable selectors
   - mockable data boundaries
@@ -257,3 +258,4 @@ User says: "Check whether this miniapp version is safe to ship."
 - Open `references/json-contracts.md` for reusable plan, validation, and release JSON shapes.
 - Open `references/example-handoff-pack.md` for a realistic PM to developer to unit to E2E handoff example.
 - Open `references/v2-toolchain-catalog.md` for the capability-module matrix, tool fragments, and portability notes.
+- Use `wechat-miniapp-design` skill for design token system, miniapp CSS constraints, component patterns, and visual quality checklist.
