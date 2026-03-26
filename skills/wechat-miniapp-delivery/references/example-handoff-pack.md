@@ -1,6 +1,6 @@
 # Example Handoff Pack
 
-Use this reference when the request is feature-sized and you want a concrete example of how to hand work across PM, developer, unit-test, and E2E roles.
+Use this reference when the request is feature-sized and you want a concrete example of how to hand work across PM, developer, unit and API-contract testing, functional QA, E2E QA, and performance QA roles.
 
 ## Example Request
 
@@ -36,7 +36,7 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
   "capability_plan": [
     {
       "name": "weapp_test_automation",
-      "action": "unit+e2e",
+      "action": "unit+api-contract+e2e",
       "fallback": "unit-only"
     },
     {
@@ -60,22 +60,44 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
     {
       "id": "T2",
       "owner": "unit",
-      "scope": "filter mapping, refresh state, list rendering edge cases",
-      "acceptance": "Changed logic is covered with deterministic tests"
+      "scope": "filter mapping, refresh state, list rendering edge cases, API request or response assumptions",
+      "acceptance": "Changed logic and touched interfaces are covered with deterministic tests"
     },
     {
       "id": "T3",
+      "owner": "functional_qa",
+      "scope": "acceptance matrix, empty state, retry state, and permission-denied behavior",
+      "acceptance": "Business criteria are explicitly proved or blocked"
+    },
+    {
+      "id": "T4",
       "owner": "e2e",
       "scope": "order list filter flow and refresh flow",
       "acceptance": "Critical user path passes in automation"
     },
     {
-      "id": "T4",
+      "id": "T5",
+      "owner": "performance_qa",
+      "scope": "first-screen latency and request-count comparison",
+      "acceptance": "No unacceptable regression against baseline"
+    },
+    {
+      "id": "T6",
       "owner": "pm",
       "scope": "preview readiness and release evidence",
       "acceptance": "Preview blockers and release prerequisites are explicit"
     }
   ],
+  "developer_test_obligations": {
+    "unit": [
+      "order status mapping",
+      "refresh state transition"
+    ],
+    "api_contract": [
+      "order list request params",
+      "order list response shape"
+    ]
+  },
   "delivery_split": {
     "feature_delivery": "in_scope",
     "release_enablement": "preview-in-scope upload-out-of-scope"
@@ -100,6 +122,9 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
 | Filter options match supported order states | UI diff or code evidence plus unit test | Developer and unit |
 | Changing the filter updates the list correctly | Unit test plus E2E evidence | Unit and E2E |
 | Pull-to-refresh keeps the selected filter and refreshes data | Unit test plus manual or E2E evidence | Developer, unit, E2E |
+| Empty state and retry state remain correct | Functional acceptance plus unit evidence | Functional QA and unit |
+| Order list API request and response assumptions stay valid | Contract test or deterministic fixture check | Developer and unit |
+| No unacceptable regression on first screen or request count | Performance baseline comparison | Performance QA |
 | Preview release can be attempted safely | Preflight or release report with blockers or success evidence | PM |
 | Upload can stay blocked if preview succeeds but permissions are incomplete | Explicit release-enable status with blocker | PM |
 
@@ -114,6 +139,7 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
 - `miniprogram-ci` and preview credentials are present.
 - Upload robot permission is not enabled yet, so preview is allowed but upload is blocked.
 - Existing RUM provider is available and should receive the preview tag.
+- Current main branch is the performance comparison baseline.
 
 ## Developer Handoff
 
@@ -132,25 +158,45 @@ Give the developer:
 Expected output:
 - changed files list
 - assumptions about order status source
+- touched API surfaces
 - new selectors or test seams
 - blockers for preview or upload readiness
 
-## Unit-Test Handoff
+## Unit And API-Contract Handoff
 
-Give the unit-test worker:
-- Goal: cover filter mapping, empty-state behavior, refresh state transitions, and selected-filter persistence.
+Give the unit and API-contract worker:
+- Goal: cover filter mapping, empty-state behavior, refresh state transitions, selected-filter persistence, and order list API request or response assumptions.
 - Non-goals: do not rewrite feature files.
 - Owned paths:
   - `tests/unit`
   - fixtures or mocks used by those tests
 - Success check:
   - changed logic covered
+  - touched interfaces have deterministic fixture or contract coverage
   - failing cases and missing seams reported clearly
 
 Expected output:
 - changed test files
 - coverage result
+- touched contract surfaces
 - failed cases or missing seams
+
+## Functional QA Handoff
+
+Give the functional QA worker:
+- Goal: validate filter behavior, refresh behavior, empty state, retry state, and any user-visible failure copy.
+- Non-goals: do not rewrite feature files or own automation implementation.
+- Owned paths:
+  - acceptance notes
+  - screenshots or repro artifacts
+- Success check:
+  - every business criterion is marked pass, fail, or blocked
+  - repro is explicit for failures
+
+Expected output:
+- acceptance matrix
+- failed criteria
+- residual risk list
 
 ## E2E Handoff
 
@@ -169,6 +215,23 @@ Expected output:
 - changed E2E files
 - artifact paths
 - exact failure point if the flow fails
+
+## Performance QA Handoff
+
+Give the performance QA worker:
+- Goal: compare first-screen behavior and request count against current main.
+- Non-goals: do not invent hard thresholds if the repo has no existing budget.
+- Owned paths:
+  - performance notes
+  - performance artifacts
+- Success check:
+  - baseline is explicit
+  - regressions and waiver needs are explicit
+
+Expected output:
+- baseline used
+- regression summary
+- blocker or waiver note
 
 ## PM Closeout Pack
 
@@ -193,6 +256,13 @@ Use this summary when all workers return:
       "Upload remains blocked by missing robot permission"
     ]
   },
+  "developer_test_obligations": {
+    "status": "pass",
+    "notes": [
+      "Unit tests cover filter state transitions",
+      "Order list request and response fixtures were updated"
+    ]
+  },
   "validations": {
     "preflight": {
       "ok": true,
@@ -207,12 +277,30 @@ Use this summary when all workers return:
       },
       "artifacts": []
     },
+    "api_contract": {
+      "ok": true,
+      "surfaces": [
+        "api/order/list"
+      ],
+      "artifacts": []
+    },
+    "functional_acceptance": {
+      "ok": true,
+      "failed_criteria": [],
+      "artifacts": []
+    },
     "e2e": {
       "ok": true,
       "failed_flows": [],
       "artifacts": [
         "./artifacts/e2e/order-list-filter.png"
       ]
+    },
+    "performance": {
+      "ok": true,
+      "baseline": "main",
+      "issues": [],
+      "artifacts": []
     },
     "release": {
       "ok": true,

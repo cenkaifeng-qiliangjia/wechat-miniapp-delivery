@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Install the skill from the public GitHub repo without cloning it first."""
+"""Install one or more skills from the public GitHub repo without cloning it first."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 import shutil
@@ -12,10 +13,8 @@ import tempfile
 import urllib.request
 import zipfile
 
-SKILL_NAME = "wechat-miniapp-delivery"
 DEFAULT_REPO = "cenkaifeng-qiliangjia/wechat-miniapp-delivery"
 DEFAULT_REF = "main"
-SKILL_PATH = Path("skills") / SKILL_NAME
 
 
 def codex_root() -> Path:
@@ -50,6 +49,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Overwrite an existing destination skill directory.",
     )
+    parser.add_argument(
+        "--skill",
+        action="append",
+        help="Install only the named skill. Repeat to install multiple skills. Defaults to the whole suite.",
+    )
     return parser.parse_args()
 
 
@@ -67,9 +71,28 @@ def download_repo(repo: str, ref: str, tmp_dir: Path) -> Path:
     return tmp_dir / next(iter(top_levels))
 
 
-def install(src: Path, dest_root: Path, force: bool) -> Path:
+def load_catalog(repo_root: Path) -> list[dict[str, object]]:
+    data = json.loads((repo_root / "catalog.json").read_text())
+    return data["skills"]
+
+
+def select_skills(repo_root: Path, requested: list[str] | None) -> list[dict[str, object]]:
+    skills = load_catalog(repo_root)
+    if not requested:
+        return skills
+
+    lookup = {item["name"]: item for item in skills}
+    selected: list[dict[str, object]] = []
+    for name in requested:
+        if name not in lookup:
+            raise RuntimeError(f"Unknown skill: {name}")
+        selected.append(lookup[name])
+    return selected
+
+
+def install(src: Path, dest_root: Path, skill_name: str, force: bool) -> Path:
     dest_root.mkdir(parents=True, exist_ok=True)
-    dest_dir = dest_root / SKILL_NAME
+    dest_dir = dest_root / skill_name
     if dest_dir.exists():
         if not force:
             raise FileExistsError(f"Destination already exists: {dest_dir}")
@@ -100,14 +123,17 @@ def main() -> int:
     args = parse_args()
     with tempfile.TemporaryDirectory(prefix="miniapp-skill-install-") as tmp:
         repo_root = download_repo(args.repo, args.ref, Path(tmp))
-        src = repo_root / SKILL_PATH
-        if not (src / "SKILL.md").is_file():
-            print(f"Missing skill path in downloaded repo: {src}", file=sys.stderr)
-            return 1
         try:
-            for label, dest_root in resolve_targets(args):
-                dest_dir = install(src, dest_root, force=args.force)
-                print(f"Installed {SKILL_NAME} for {label} at {dest_dir}")
+            selected_skills = select_skills(repo_root, args.skill)
+            for skill in selected_skills:
+                skill_name = str(skill["name"])
+                src = repo_root / str(skill["source"])
+                if not (src / "SKILL.md").is_file():
+                    print(f"Missing skill path in downloaded repo: {src}", file=sys.stderr)
+                    return 1
+                for label, dest_root in resolve_targets(args):
+                    dest_dir = install(src, dest_root, skill_name, force=args.force)
+                    print(f"Installed {skill_name} for {label} at {dest_dir}")
         except (FileExistsError, RuntimeError) as exc:
             print(str(exc), file=sys.stderr)
             return 1

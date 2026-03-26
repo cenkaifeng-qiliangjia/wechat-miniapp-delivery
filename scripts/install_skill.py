@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Install the canonical skill from a local clone into agent skill directories."""
+"""Install one or more canonical skills from a local clone into agent skill directories."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 import shutil
 import sys
 
-SKILL_NAME = "wechat-miniapp-delivery"
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIR = REPO_ROOT / "skills" / SKILL_NAME
+CATALOG_PATH = REPO_ROOT / "catalog.json"
 
 
 def codex_root() -> Path:
@@ -23,9 +23,28 @@ def claude_root() -> Path:
     return Path.home() / ".claude" / "skills"
 
 
-def install(src: Path, dest_root: Path, force: bool) -> Path:
+def load_catalog() -> list[dict[str, object]]:
+    data = json.loads(CATALOG_PATH.read_text())
+    return data["skills"]
+
+
+def select_skills(requested: list[str] | None) -> list[dict[str, object]]:
+    skills = load_catalog()
+    if not requested:
+        return skills
+
+    lookup = {item["name"]: item for item in skills}
+    selected: list[dict[str, object]] = []
+    for name in requested:
+        if name not in lookup:
+            raise RuntimeError(f"Unknown skill: {name}")
+        selected.append(lookup[name])
+    return selected
+
+
+def install(src: Path, dest_root: Path, skill_name: str, force: bool) -> Path:
     dest_root.mkdir(parents=True, exist_ok=True)
-    dest_dir = dest_root / SKILL_NAME
+    dest_dir = dest_root / skill_name
     if dest_dir.exists():
         if not force:
             raise FileExistsError(f"Destination already exists: {dest_dir}")
@@ -55,13 +74,20 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Overwrite an existing destination skill directory.",
     )
+    parser.add_argument(
+        "--skill",
+        action="append",
+        help="Install only the named skill. Repeat to install multiple skills. Defaults to the whole suite.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    if not (SOURCE_DIR / "SKILL.md").is_file():
-        print(f"Missing canonical skill at {SOURCE_DIR}", file=sys.stderr)
+    try:
+        selected_skills = select_skills(args.skill)
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
         return 1
 
     targets: list[tuple[str, Path]] = []
@@ -83,10 +109,16 @@ def main() -> int:
             targets.append(("openclaw", Path(args.openclaw_dest)))
 
     try:
-        for label, dest_root in targets:
-            dest_dir = install(SOURCE_DIR, dest_root, force=args.force)
-            print(f"Installed {SKILL_NAME} for {label} at {dest_dir}")
-    except FileExistsError as exc:
+        for skill in selected_skills:
+            skill_name = str(skill["name"])
+            source_dir = REPO_ROOT / str(skill["source"])
+            if not (source_dir / "SKILL.md").is_file():
+                print(f"Missing canonical skill at {source_dir}", file=sys.stderr)
+                return 1
+            for label, dest_root in targets:
+                dest_dir = install(source_dir, dest_root, skill_name, force=args.force)
+                print(f"Installed {skill_name} for {label} at {dest_dir}")
+    except (FileExistsError, RuntimeError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
 

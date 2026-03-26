@@ -1,6 +1,6 @@
 # Workflow And Handoffs
 
-Use this reference when the task spans more than one stage or when you need worker coordination. This is the evidence-first V2 flow: every handoff should preserve plan, blockers, fallback, evidence, and rollback information.
+Use this reference when the task spans more than one stage or when you need worker coordination. This is the evidence-first V5 flow: every handoff should preserve plan, blockers, fallback, evidence, rollback information, and explicit acceptance dimensions.
 
 ## Ground The Task In Concrete Use Cases
 
@@ -19,18 +19,21 @@ If the current task does not fit one of these frames, write a new one-sentence u
 | Environment doctor | PM plus developer | Confirm version floors, credentials, automation runners, and tool availability | Environment report with downgrade path |
 | Preflight | PM plus developer | Confirm framework, build, release, compliance, and observability prerequisites | Preflight report with blockers |
 | Implementation | Developer | Change code, config, cloud resources, and test seams | Change summary and owned file list |
-| Tool gates | Developer, unit, E2E, or orchestrator | Catch formatting, secrets, privacy, unit, E2E, and deploy issues | Capability-run summary with pass, fail, or degraded mode |
-| Unit gate | Unit test | Prove changed logic is deterministic and covered | Coverage and failure report |
-| E2E and acceptance | E2E QA plus PM | Verify the main user path and gather acceptance evidence | Evidence pack and go or no-go recommendation |
+| Tool gates | Developer, unit, QA, or orchestrator | Catch formatting, secrets, privacy, unit, contract, E2E, performance, and deploy issues | Capability-run summary with pass, fail, or degraded mode |
+| Unit and contract gate | Unit and API contract test | Prove changed logic and touched interfaces are deterministic and covered | Coverage, fixture, and contract report |
+| Functional acceptance | Functional QA plus PM | Verify business correctness, edge cases, and user-visible failure behavior | Functional acceptance matrix |
+| E2E acceptance | E2E QA plus PM | Verify the main user path and gather automation evidence | E2E evidence pack and go or no-go recommendation |
+| Performance acceptance | Performance QA plus PM | Verify the release candidate does not introduce unacceptable runtime regressions | Performance acceptance report |
 | Release and watch | Release owner, defaulting to PM | Produce preview or upload evidence, watch notes, and rollback readiness | Release summary, observation notes, rollback target |
 
 Use a sequential workflow for the main path and an iterative refinement loop after validation:
 1. PM plans.
 2. PM and developer run environment doctor and preflight.
 3. Developer implements.
-4. Unit and E2E validate.
-5. Orchestrator or developer fixes.
-6. PM or release owner closes the loop.
+4. Unit and contract validation starts as soon as implementation seams exist.
+5. Functional, E2E, and performance acceptance validate in parallel where possible.
+6. Orchestrator or developer fixes.
+7. PM or release owner closes the loop.
 
 If the project is hybrid or release tooling is incomplete, keep two status tracks:
 - `feature delivery`
@@ -43,6 +46,7 @@ Give each worker the minimum context needed to succeed:
 - Non-goals: what not to touch
 - Owned paths: files or directories they may change
 - Inputs: requirement, plan slice, acceptance criteria, risk modules, capability modules
+- Delivery scope: current WeChat target plus any shared-code impact
 - Environment and fallback: what tool path is expected, what downgrade path is allowed
 - Success check: tests, artifacts, or gate result expected
 - Required output: changed files, evidence, blockers, fallback used, next owner
@@ -75,7 +79,9 @@ Use for implementation across app code, cloud code, and configuration.
 Expected output:
 - changed files
 - why each change was required
+- touched API surfaces
 - test seams added
+- unit and contract checks added or updated
 - blockers or assumptions
 - release-enablement items if the feature depends on unavailable tooling
 
@@ -84,20 +90,37 @@ Default ownership:
 - cloud functions
 - config touched by the feature
 
-### Unit test worker
+### Unit and API contract worker
 
-Use for unit tests, mocks, fixtures, and coverage enforcement.
+Use for unit tests, mocks, fixtures, coverage enforcement, and request or response contract checks.
 
 Expected output:
 - changed test files
 - coverage result
 - failed cases
+- touched contract surfaces
+- stale or missing fixtures
 - missing seams or deterministic gaps
 
 Default ownership:
 - `tests/unit`
 - unit fixtures
 - coverage config if needed
+
+### Functional QA worker
+
+Use for business acceptance, boundary states, permissions, empty states, and retry behavior.
+
+Expected output:
+- acceptance matrix
+- failing criteria
+- repro steps
+- residual risk list
+
+Default ownership:
+- QA notes
+- acceptance artifacts
+- screenshots or lightweight repro assets
 
 ### E2E QA worker
 
@@ -115,6 +138,21 @@ Default ownership:
 - QA fixtures
 - artifact directories
 
+### Performance QA worker
+
+Use for startup, first-screen, request-count, large-list, rich-content, and heavy-media regression checks when performance is in scope.
+
+Expected output:
+- baseline used
+- measured regressions or wins
+- blocking performance issues
+- waiver note if needed
+
+Default ownership:
+- performance artifacts
+- measurement notes
+- comparison summaries
+
 ### Release owner
 
 Use for preview, upload, deploy, and release observation. This is usually the PM or orchestrator if the team does not define a separate role.
@@ -131,9 +169,10 @@ Expected output:
 
 Keep the normal handoff chain:
 1. PM to developer
-2. Developer to unit test and E2E QA
-3. Unit test and E2E QA back to PM or release owner
-4. PM to release owner or human approver
+2. Developer to unit and API contract worker
+3. Developer or orchestrator to functional, E2E, and performance QA
+4. QA roles back to PM or release owner
+5. PM to release owner or human approver
 
 Each handoff must state:
 - what changed
@@ -142,6 +181,7 @@ Each handoff must state:
 - what remains blocked
 - whether the run degraded to a fallback path
 - whether `feature delivery` and `release enablement` differ
+- which acceptance dimensions passed: functional, E2E, performance, developer test obligations
 - who owns the next action
 
 Never hand off only a diff. Always include a short decision-oriented summary.

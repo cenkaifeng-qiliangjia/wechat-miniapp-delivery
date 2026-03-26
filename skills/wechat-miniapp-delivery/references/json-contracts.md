@@ -21,7 +21,7 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     ]
   },
   "project": {
-    "type": "native-weapp|taro|uni-app",
+    "type": "native-weapp|taro-react|taro-vue|uni-app-vue|hybrid-cross-platform",
     "repo_path": "./",
     "appid": "wx1234567890",
     "backend": "cloudbase|custom|hybrid",
@@ -45,7 +45,7 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     },
     {
       "name": "weapp_test_automation",
-      "requested_action": "unit+e2e",
+      "requested_action": "unit+api-contract+e2e",
       "required": true,
       "fallback": "unit-only"
     },
@@ -67,9 +67,21 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
   },
   "quality_gates": {
     "unit_coverage_min": 0.75,
+    "api_contract_surfaces": [
+      "api/order/list",
+      "cloudfunctions/orderList"
+    ],
     "e2e_flows": [
       "order-list-filter",
       "order-detail-pay"
+    ],
+    "functional_acceptance": [
+      "filter_options_match_supported_states",
+      "refresh_preserves_selected_filter"
+    ],
+    "performance_acceptance": [
+      "no_regression_on_first_screen",
+      "request_count_stays_within_baseline"
     ],
     "privacy_data_types": [
       "profile",
@@ -126,11 +138,33 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     },
     {
       "id": "T3",
+      "owner": "functional_qa",
+      "scope": "acceptance matrix and user-visible edge states",
+      "acceptance": "Business criteria are explicitly proved or blocked"
+    },
+    {
+      "id": "T4",
       "owner": "e2e",
       "scope": "tests/e2e/order-list-filter",
       "acceptance": "Critical flow passes in automation"
+    },
+    {
+      "id": "T5",
+      "owner": "performance_qa",
+      "scope": "first-screen latency and request-count comparison",
+      "acceptance": "No unacceptable regression against baseline"
     }
   ],
+  "developer_test_obligations": {
+    "unit": [
+      "order_status_mapper",
+      "refresh_state_transition"
+    ],
+    "api_contract": [
+      "order_list_request_params",
+      "order_list_response_shape"
+    ]
+  },
   "delivery_split": {
     "feature_delivery": "in_scope",
     "release_enablement": "in_scope"
@@ -168,6 +202,10 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     "status": "pass|fail|needs-review",
     "notes": []
   },
+  "developer_test_obligations": {
+    "status": "pass|fail|needs-review",
+    "notes": []
+  },
   "env_doctor": {
     "status": "pass|fail|needs-setup",
     "issues": [],
@@ -177,6 +215,9 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     "files": [
       "pages/order-list/index.js",
       "tests/unit/order-list.test.js"
+    ],
+    "api_surfaces": [
+      "api/order/list"
     ],
     "cloud_resources": [
       "cloudfunctions/makeOrder"
@@ -194,7 +235,7 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     },
     "weapp_test_automation": {
       "ok": true,
-      "mode": "unit+e2e",
+      "mode": "unit+api-contract+e2e",
       "degraded": false,
       "issues": []
     },
@@ -226,12 +267,30 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
       },
       "artifacts": []
     },
+    "api_contract": {
+      "ok": true,
+      "surfaces": [
+        "api/order/list"
+      ],
+      "artifacts": []
+    },
+    "functional_acceptance": {
+      "ok": true,
+      "failed_criteria": [],
+      "artifacts": []
+    },
     "e2e": {
       "ok": true,
       "failed_flows": [],
       "artifacts": [
         "./artifacts/e2e/order-list-filter.png"
       ]
+    },
+    "performance": {
+      "ok": true,
+      "baseline": "main",
+      "issues": [],
+      "artifacts": []
     },
     "compliance": {
       "privacy_ok": true,
@@ -269,6 +328,8 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     "next_action": "approve_release",
     "artifacts": [
       "validation_summary",
+      "functional_acceptance",
+      "performance_report",
       "release_evidence",
       "rollback_target"
     ]
@@ -289,6 +350,7 @@ For small tasks, reduce the response to these fields:
 - `env_doctor`
 - `tool_runs`
 - `validations`
+- `developer_test_obligations`
 - `handoff`
 - `rollback`
 
