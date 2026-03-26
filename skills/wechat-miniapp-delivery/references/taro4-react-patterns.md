@@ -47,6 +47,36 @@ Rule of thumb:
 - `Input` reads from `onInput` with `e.detail.value`, not web-style `onChange`.
 - `onClick` works well on `View` and `Text`, but not every native component behaves like a web element. Check the component event model before reusing generic handlers.
 
+## Styling Rules
+
+### Selector restrictions
+
+- Prefer flat class selectors. Tag selectors such as `view {}` or `text {}` are ignored or unreliable in the miniapp runtime.
+- Do not rely on the `*` wildcard selector. It is not supported.
+- Descendant combinators work, but child and sibling combinators such as `>`, `+`, and `~` have inconsistent support across base library versions. Prefer direct class hooks instead.
+- Use `:global` only when the project is actually using CSS Modules. Taro's default SCSS setup is not CSS Modules, so check the style config before reaching for it.
+
+### Units
+
+- Use `rpx` as the default responsive unit. `750rpx` maps to the full screen width across devices.
+- Use `px` only when a fixed physical size is intentional, such as `1px` hairline borders.
+- Treat `rem`, `em`, `vw`, and `vh` as partial-support options. `rpx` is the standard choice for layout and spacing.
+
+### Unsupported or limited CSS
+
+- Do not expect `position: fixed` to work inside scroll containers. It is fixed to the page viewport, not the nested scroll area.
+- Keep `z-index` expectations local to the current stacking context. Native components such as `map`, `video`, `canvas`, and `textarea` still render above normal layers.
+- Be careful with `overflow: hidden` plus `border-radius`. Older base library versions may fail to clip children correctly.
+- CSS animations and transitions work, but `@keyframes` names should be unique per component to avoid bundle-level collisions.
+- Do not rely on CSS custom properties with `var()` when the target base library can be below `2.11.0`.
+
+### SCSS in Taro 4
+
+- Taro 4 supports SCSS out of the box when `sass` is present in `devDependencies`.
+- Keep a co-located `.scss` file for each page or component and import it from the `.tsx` entry.
+- Prefer flat class names over deep nesting. Miniapp style isolation is already per component by default.
+- Avoid long `@import` chains across packages. Shared styles should flow through design tokens or copied values, because workspace SCSS imports may not resolve cleanly through Taro's compilation scope.
+
 ## HTML Content In Miniapp
 
 - `RichText` is the standard way to render HTML content in a miniapp.
