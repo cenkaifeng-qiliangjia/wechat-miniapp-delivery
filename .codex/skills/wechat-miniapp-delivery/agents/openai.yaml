@@ -1,4 +1,0 @@
-interface:
-  display_name: "WeChat Miniapp Delivery"
-  short_description: "Universal miniapp delivery with CI, QA, CloudBase, and compliance fallbacks."
-  default_prompt: "Use $wechat-miniapp-delivery to plan, implement, validate, deploy, and release a WeChat mini program change with coordinated developer, PM, unit-test, and E2E roles. Choose the right capability modules, apply downgrade gates when tooling is unavailable, and return compact evidence-first handoff artifacts."

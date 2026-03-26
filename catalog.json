@@ -1,10 +1,10 @@
 {
-  "version": 2,
+  "version": 3,
   "skills": [
     {
       "name": "wechat-miniapp-delivery",
       "source": "skills/wechat-miniapp-delivery",
-      "mirrors": [
+      "generated_mirrors": [
         ".codex/skills/wechat-miniapp-delivery",
         ".claude/skills/wechat-miniapp-delivery"
       ],
@@ -13,7 +13,7 @@
         "claude-code",
         "openclaw"
       ],
-      "version": "2.0.0",
+      "version": "3.0.0",
       "install": {
         "canonical_repo_path": "skills/wechat-miniapp-delivery",
         "local_script": "python3 scripts/install_skill.py --target all",

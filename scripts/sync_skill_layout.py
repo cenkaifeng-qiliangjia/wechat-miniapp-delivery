@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync the canonical skill into Codex and Claude repo-local mirrors."""
+"""Generate optional repo-local mirrors for Codex and Claude from the canonical skill."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def main() -> int:
 
     for target in TARGET_DIRS:
         reset_copy(SOURCE_DIR, target)
-        print(f"Synced {SOURCE_DIR} -> {target}")
+        print(f"Generated mirror {SOURCE_DIR} -> {target}")
 
     return 0
 
