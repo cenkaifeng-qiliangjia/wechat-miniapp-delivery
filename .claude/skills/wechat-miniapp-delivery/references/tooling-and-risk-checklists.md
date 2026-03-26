@@ -23,10 +23,20 @@ Use the repo layout to classify the project:
 | Project type | Common signals | Typical release path |
 | --- | --- | --- |
 | Native WeChat mini program | `app.json`, `project.config.json`, page folders under a miniapp root | `miniprogram-ci` |
-| Taro miniapp | `src/app.config.*`, Taro config, build output such as `dist/weapp` | `@tarojs/plugin-mini-ci` or `miniprogram-ci` |
+| Taro 3 miniapp | `@tarojs/*` on `^3.x`, Taro config, `src/app.config.*`, build output such as `dist/weapp` | `@tarojs/plugin-mini-ci` or `miniprogram-ci` |
+| Taro 4 React miniapp | `@tarojs/*` on `^4.x`, `defineConfig` from `@tarojs/cli`, `defineAppConfig`, `framework: "react"`, `compiler.type: "webpack5"` | `@tarojs/plugin-mini-ci` or `miniprogram-ci` |
 | uni-app targeting WeChat | `pages.json`, `manifest.json`, uni build scripts | framework build plus `miniprogram-ci` fallback |
 
 If the classification is ambiguous, stop and inspect the build scripts before editing release logic.
+
+## Taro 4 Specific Preflight
+
+When the repo is Taro 4 with React, verify these before editing or releasing:
+- `compiler.type` matches the expected build pipeline, typically `webpack5`
+- `mini.compile.include` covers any workspace source packages that must be compiled into the miniapp build
+- `compiler.prebundle.enable` is disabled when the repo consumes unbuilt workspace packages as source
+- `project.config.json` has a valid generic app config and its `miniprogramRoot` points at the real Taro output directory
+- `@tarojs/plugin-platform-weapp` or the repo-standard Taro WeChat plugin path is present when the build expects it
 
 ## Map Capability Modules Early
 
@@ -65,6 +75,10 @@ High-value files to inspect early:
 Use these defaults unless the repo already standardized on an equivalent:
 - Build and release: `miniprogram-ci`
 - Taro release wrapper: `@tarojs/plugin-mini-ci`
+- Taro 4 build: `pnpm taro build --type weapp` or the repo-standard Taro build script
+- Taro 4 typecheck: `pnpm tsc --noEmit` or the repo-standard typecheck script
+- Taro 4 tests: `pnpm test` or the repo-standard unit runner
+- Taro 4 monorepo package build: `pnpm --filter <shared-package> build` before miniapp build when shared packages are prebuilt artifacts
 - Unit tests: `miniprogram-simulate` with the repo's test runner
 - E2E: `miniprogram-automator` or `minium`
 - Observability: RUM or Sentry
@@ -123,6 +137,8 @@ Use these defaults unless the repo already standardized on an equivalent:
 | Auth or login | Token storage path, session expiry behavior, error-state handling, no sensitive logs |
 | AI or model calls | Cost limits, quota handling, latency fallback, moderation or safety hooks where needed |
 | CloudBase or open API | `config.json` permissions, env targeting, backend-only secrets, retry behavior |
+| Cross-platform shared code | No direct `Taro`, `wx`, or `uni` API imports in shared packages, adapter boundary stays at the app edge |
+| Monorepo dependency resolution | `mini.compile.include` is complete, circular dependencies are absent or understood, prebundle mode matches package build strategy |
 
 ## Downgrade Matrix
 

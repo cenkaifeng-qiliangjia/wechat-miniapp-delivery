@@ -30,6 +30,7 @@ Common use cases:
 
 1. Inspect the repo shape before planning.
 2. Detect `native-weapp`, `Taro`, or `uni-app`.
+   - If Taro 4 with React, read `references/taro4-react-patterns.md` before implementing.
 3. Detect backend mode: `CloudBase`, self-hosted backend, or hybrid.
 4. Detect the release path: `miniprogram-ci`, framework plugin, `manual-only`, or `blocked`.
 5. Detect the existing test stack, observability provider, and compliance config.
@@ -175,6 +176,7 @@ If a high-risk gate cannot be validated, do not mark the change `publish-ready`.
 ### 3. Implement
 
 - Change feature code, cloud functions, and config together.
+- When working in a Taro 4 React project, follow the framework patterns in `references/taro4-react-patterns.md` to avoid common pitfalls.
 - Add test seams while implementing:
   - stable selectors
   - mockable data boundaries
