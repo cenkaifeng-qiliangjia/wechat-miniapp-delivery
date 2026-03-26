@@ -1,0 +1,4 @@
+interface:
+  display_name: "WeChat Miniapp Delivery"
+  short_description: "Ship WeChat miniapps with dev, QA, and release gates."
+  default_prompt: "Use $wechat-miniapp-delivery to build, test, accept, and release a WeChat mini program change with coordinated developer, PM, unit-test, and E2E roles."
