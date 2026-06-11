@@ -32,35 +32,39 @@ Common use cases:
 2. Detect `native-weapp`, `Taro`, `uni-app`, or a hybrid cross-platform workspace.
    - Read `references/multi-platform-miniapp-patterns.md` when the repo mixes shared packages, more than one shell, or more than one framework variant.
    - If Taro 4 with React, read `references/taro4-react-patterns.md` before implementing.
-3. Detect the framework subtype that actually owns the WeChat build target.
-4. Detect backend mode: `CloudBase`, self-hosted backend, or hybrid.
-5. Detect the release path: `miniprogram-ci`, framework plugin, `manual-only`, or `blocked`.
-6. Detect the existing test stack, observability provider, and compliance config.
-7. Detect risk modules such as `payment`, `privacy`, `location`, `auth`, `AI`, or `cloudbase`.
-8. Detect acceptance scope:
+3. Detect whether the miniapp is a **WebView shell** (thin native shell loading an H5 app via `<web-view>`) or a native-page miniapp.
+   - Read `references/webview-shell-patterns.md` when the miniapp has very few native pages and loads an H5 URL in a `<web-view>`.
+   - WebView shell projects have distinct delivery, testing, CSS compatibility, and release coordination concerns.
+4. Detect the framework subtype that actually owns the WeChat build target.
+5. Detect backend mode: `CloudBase`, self-hosted backend, or hybrid.
+6. Detect the release path: `miniprogram-ci`, framework plugin, `manual-only`, or `blocked`.
+7. Detect the existing test stack, observability provider, and compliance config.
+8. Detect risk modules such as `payment`, `privacy`, `location`, `auth`, `AI`, `cloudbase`, or `webview-css-compat`.
+9. Detect acceptance scope:
    - functional acceptance
    - E2E acceptance
    - performance acceptance
    - developer test obligations for changed APIs and shared logic
-9. Run an environment doctor before choosing release or E2E scope:
+10. Run an environment doctor before choosing release or E2E scope:
    - `miniprogram-ci`: Node `>=16.1.0`
    - CloudBase MCP: Node `>=18.15.0`
    - `minium`: Python `>=3.8`
-10. Choose one or more capability modules:
+11. Choose one or more capability modules:
    - `weapp_ci_release`
    - `weapp_test_automation`
    - `cloudbase_env_deploy`
    - `security_compliance_gate`
-11. Choose one working mode:
+12. Choose one working mode:
    - `plan`
    - `implement`
    - `validate`
    - `release`
-12. If the repo is not a WeChat mini program project, stop and say so clearly.
-13. If the repo is hybrid or only partially wired for release, split the work into:
+13. If the repo is not a WeChat mini program project, stop and say so clearly.
+14. If the repo is hybrid or only partially wired for release, split the work into:
    - delivery work that is safe now
    - release-enablement work that must be finished before preview or upload
-14. If credentials, DevTools automation, or release keys are missing, continue only with the safe stages and hand back an explicit blocker list.
+15. If credentials, DevTools automation, or release keys are missing, continue only with the safe stages and hand back an explicit blocker list.
+16. If the project is a WebView shell, also determine whether the current change requires a miniapp release, an H5 deployment, or both. Read `references/webview-shell-patterns.md` for release coordination rules.
 
 Read `references/delivery-toolchain-catalog.md` when you need the module matrix, contract fragments, or downgrade policy.
 Read `references/qa-and-acceptance-matrix.md` when you need acceptance-role boundaries or evidence requirements.
@@ -171,6 +175,7 @@ Read `references/example-handoff-pack.md` when you want a filled-in example for 
 - `auth`: token storage path, session expiry behavior, and no sensitive logs.
 - `AI`: quota or cost limits, timeout fallback, and moderation or safety hooks where applicable.
 - `cloudbase`: env targeting, `config.json` permissions, secret placement, retry behavior, and rollback path.
+- `webview-shell`: H5 domain registered as business domain, domain verification file deployed, PostCSS compatibility pipeline intact (especially `postcss-layer-unwrap` for Tailwind v4), URL allowlist enforced, bridge message types consistent across H5 and miniapp, production build uses correct H5 URL (not localhost).
 
 If a high-risk gate cannot be validated, do not mark the change `publish-ready`.
 
@@ -287,6 +292,17 @@ User says: "Check whether this miniapp version is safe to ship."
 - Run environment doctor, preflight, compliance, unit, E2E, and release checks.
 - Produce a go or no-go summary with blockers and recommended fixes.
 
+### WebView Shell Delivery
+
+User says: "The H5 page shows no styles inside the miniapp WebView."
+
+- Identify the project as a WebView shell architecture.
+- Check the H5 PostCSS pipeline for `postcss-layer-unwrap` (required for Tailwind v4).
+- Check for `oklch()` color usage without a fallback plugin.
+- Verify the H5 domain is registered as a business domain in the admin console.
+- If CSS features were recently added, verify WebView engine compatibility.
+- Return the root cause, the PostCSS fix, and whether an H5 redeployment is sufficient or a miniapp release is also needed.
+
 ## Read References
 
 - Open `references/workflow-and-handoffs.md` for role ownership, artifact handoffs, and delegation patterns.
@@ -298,4 +314,5 @@ User says: "Check whether this miniapp version is safe to ship."
 - Open `references/multi-platform-miniapp-patterns.md` for shared-package and framework-variant rules.
 - Open `references/qa-and-acceptance-matrix.md` for functional, E2E, and performance acceptance expectations.
 - Open `references/developer-test-obligations.md` for unit and API-contract test responsibilities.
+- Open `references/webview-shell-patterns.md` for WebView shell architecture, bridge communication, CSS compatibility, domain verification, and release coordination.
 - Use `wechat-miniapp-design` skill for design token system, miniapp CSS constraints, component patterns, and visual quality checklist.

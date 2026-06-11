@@ -28,8 +28,11 @@ Use the repo layout to classify the project:
 | Taro 4 Vue miniapp | `@tarojs/*` on `^4.x`, Vue app entry, `defineConfig`, Taro build config, WeChat output path | framework build plus `miniprogram-ci` fallback |
 | uni-app targeting WeChat | `pages.json`, `manifest.json`, `uni_modules`, uni build scripts | framework build plus `miniprogram-ci` fallback |
 | Hybrid cross-platform workspace | shared packages, more than one app shell, platform adapters, workspace build graph | framework build plus per-shell release path |
+| WebView shell | very few native pages, `<web-view>` loading an H5 URL, bridge layer for `postMessage`, URL allowlist | miniapp release for shell changes, H5 deployment for business logic changes |
 
 If the classification is ambiguous, stop and inspect the build scripts before editing release logic.
+
+When the project is a WebView shell, read `references/webview-shell-patterns.md` for the full architecture, CSS compatibility, bridge communication, and release coordination rules.
 
 ## Multi-Platform Preflight
 
@@ -48,6 +51,21 @@ When the repo is Taro 4 with React, verify these before editing or releasing:
 - `compiler.prebundle.enable` is disabled when the repo consumes unbuilt workspace packages as source
 - `project.config.json` has a valid generic app config and its `miniprogramRoot` points at the real Taro output directory
 - `@tarojs/plugin-platform-weapp` or the repo-standard Taro WeChat plugin path is present when the build expects it
+- The `build:weapp` script in `package.json` explicitly sets `NODE_ENV=production`. Taro does not set this automatically, and missing it causes `defineConstants` to resolve development values (such as `localhost` URLs) in production builds
+
+## WebView Shell Preflight
+
+When the project is a WebView shell, verify these in addition to the framework-specific preflight:
+- The H5 domain is registered as a business domain in the WeChat admin console
+- The domain verification file is deployed and accessible at the H5 domain root
+- The API domain is registered as a server domain (request legal domain) in the admin console
+- The miniapp privacy declaration covers data collected through the H5 WebView layer
+- The URL allowlist in the miniapp config includes only trusted domains
+- The H5 PostCSS pipeline includes `postcss-layer-unwrap` if using Tailwind CSS v4 (without it, all styles are silently discarded in the WebView)
+- The H5 PostCSS pipeline includes an `oklch()` fallback plugin if using modern color functions
+- The bridge message types are consistent between the H5 and miniapp codebases
+- The production build resolves the H5 URL to the production domain, not `localhost`
+- `urlCheck` is set to `true` in the production `project.config.json` (only `false` during local development via `project.private.config.json`)
 
 ## Map Capability Modules Early
 
@@ -73,6 +91,10 @@ Check the following first:
 - observability provider and release tagging path
 - privacy declarations and `usePrivacyCheck` or equivalent guard if privacy APIs are involved
 - payment callback handling path if payment or refund flows are touched
+- WebView shell: H5 base URL resolves to production domain in production build
+- WebView shell: PostCSS compatibility pipeline is intact (`postcss-layer-unwrap`, oklch fallback)
+- WebView shell: domain verification file is deployed and accessible
+- WebView shell: bridge message types are in sync between H5 and miniapp
 
 High-value files to inspect early:
 - `project.config.json`
@@ -81,6 +103,9 @@ High-value files to inspect early:
 - framework build config
 - `cloudfunctions/*/config.json`
 - app config or routing config
+- H5 `postcss.config.js` or `postcss.config.ts` (when WebView shell)
+- H5 `public/` directory for domain verification files (when WebView shell)
+- miniapp bridge directory for message type definitions (when WebView shell)
 
 ## Prefer The P0 Tool Stack
 
@@ -174,6 +199,9 @@ Use these defaults unless the repo already standardized on an equivalent:
 | Cross-platform shared code | No direct `Taro`, `wx`, or `uni` API imports in shared packages, adapter boundary stays at the app edge |
 | Monorepo dependency resolution | `mini.compile.include` is complete, circular dependencies are absent or understood, prebundle mode matches package build strategy |
 | Touched interface contracts | request and response fixtures are current, error mapping is explicit, failure payloads are tested |
+| WebView shell CSS compatibility | `postcss-layer-unwrap` present for Tailwind v4, `oklch()` fallback present, no unsupported CSS features (`:has()`, `@container`, CSS Nesting) without PostCSS downgrade, test on real device not just simulator |
+| WebView shell bridge | message types consistent on both sides, new handlers cover error and permission-denied cases, H5 side has feature detection for non-miniapp contexts |
+| WebView shell domain config | business domain registered, verification file deployed, server domains registered, privacy declaration covers WebView data collection |
 
 ## Downgrade Matrix
 
