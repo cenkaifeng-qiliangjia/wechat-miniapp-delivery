@@ -1,4 +1,4 @@
 interface:
   display_name: "WeChat Miniapp Delivery"
-  short_description: "Multi-framework miniapp delivery with QA, performance, and API-contract gates."
-  default_prompt: "Use $wechat-miniapp-delivery to plan, implement, validate, deploy, and release a WeChat mini program change across native, Taro, uni-app, or hybrid repos. Coordinate developer, PM, unit and API-contract testing, functional QA, E2E QA, and performance acceptance, choose the right capability modules, apply downgrade gates when tooling is unavailable, and return compact evidence-first handoff artifacts."
+  short_description: "Miniapp delivery with runtime UI, QA, and release gates"
+  default_prompt: "Use $wechat-miniapp-delivery to plan, implement, validate, and release a WeChat miniapp change with evidence for functional, visual runtime, E2E, performance, compliance, and rollback gates."

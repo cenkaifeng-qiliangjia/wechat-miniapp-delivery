@@ -1,6 +1,6 @@
 ---
 name: wechat-miniapp-design
-description: Design system and visual quality gate for WeChat miniapp development. Use when building or reviewing miniapp pages, components, or styles. Enforces design token discipline, miniapp CSS constraints, cross-platform consistency, and visual quality standards. Works alongside wechat-miniapp-delivery as the design arm of the delivery pipeline.
+description: Design system and runtime visual quality gate for WeChat miniapp development. Use when building or reviewing miniapp pages, components, WXML/WXSS, Taro or uni-app styles, buttons with text or icons, conditional content, cards, sheets, modals, canvas overlays, theme switching, or any request mentioning UI, layout, styling, alignment, visual jitter, or layer issues. Enforces token discipline, native miniapp CSS constraints, cross-platform consistency, and state-based visual acceptance.
 ---
 
 # WeChat Miniapp Design
@@ -9,12 +9,17 @@ Use this skill as the design quality gate for miniapp UI work. It ensures every 
 
 This skill complements `wechat-miniapp-delivery`: delivery handles the workflow (plan → implement → validate → release), design handles the visual standard (tokens → layout → components → quality check).
 
-## When This Skill Activates
+## Critical Runtime UI Gate
 
-- Building or modifying a miniapp page or component
-- Writing or reviewing SCSS/CSS for miniapp
-- Creating shared cross-platform UI (miniapp + web)
-- Any task involving "样式", "设计", "UI", "页面", "组件", or visual appearance
+For every user-visible UI change:
+
+1. Identify interactive controls, conditional regions, overlays, and native components before editing styles.
+2. Build a visual state matrix that covers the states affected by the change.
+3. Inspect shared control resets before patching one local button.
+4. Verify the rendered result in the WeChat runtime or Developer Tools. Static CSS review alone is not acceptance evidence.
+5. Verify on a real device when the change involves `canvas`, `map`, `video`, `camera`, `textarea`, `<web-view>`, safe areas, or a simulator-only rendering difference.
+
+Read `references/runtime-ui-quality-gates.md` when the task includes button-label alignment, icon-and-text controls, conditional helper text, dynamic card height, theme switching, sheets, modals, or native-component layering.
 
 ## Design Thinking For Miniapp
 
@@ -143,7 +148,7 @@ $shadow-md: 0 18px 40px rgba(16, 42, 67, 0.1);  // Featured panels
 | Feature | Limitation |
 |---------|-----------|
 | `position: fixed` | Only works relative to page viewport, not inside ScrollView |
-| `z-index` | Native components (`map`, `video`, `canvas`, `textarea`) always render above normal layers |
+| `z-index` | A large value does not reliably cover native components such as `map`, `video`, `canvas`, `camera`, or `textarea`; hide/unmount the native surface or use a supported cover layer |
 | `overflow: hidden` + `border-radius` | May not clip children on older base library versions |
 | `@keyframes` | Names must be unique per component to avoid bundle collisions |
 | CSS `var()` | Not supported below base library 2.11.0 |
@@ -205,7 +210,27 @@ Variants: glass (backdrop-filter + semi-transparent bg), warm (gradient bg for d
 - Ghost: white bg with brand border, brand text
 - Pill: `$radius-full` for chip-like actions
 - All buttons: minimum touch target 44px height on miniapp
-- Remove default `::after` border on Taro `<Button>`
+- Reset native button defaults in one shared class: `box-sizing`, margin, padding, inherited font, border, `::after`, text alignment, and a predictable base line height
+- For a single-line text button, explicitly set `display: flex`, `align-items: center`, `justify-content: center`, a touch-safe height, and `line-height: 1` or `1.2`
+- For icon-and-text buttons, use flex alignment and `gap`; give the icon a fixed box instead of aligning with spaces or text glyph baselines
+- Do not rely on inherited page `line-height`, native `<button>` padding, or matching `line-height` to a fixed height
+- After changing a shared button reset, audit every button variant, including save, delete, tab, chip, sheet, and modal actions
+
+### Dynamic Content And Layout Stability
+
+- Reserve layout space for helper text, time ranges, validation messages, and other content that appears during a toggle when neighboring cards should remain still
+- Prefer keeping the node mounted with `min-height`, `opacity`, and `visibility` changes instead of `wx:if` or `display: none`
+- Reserve enough height for the maximum expected wrapped lines, not only the current copy
+- Keep card padding and inter-card spacing stable across states
+- Animate opacity or color before animating layout dimensions; if height must animate, use an explicit measured range
+
+### Modals And Native Layers
+
+- Treat `canvas`, `map`, `video`, `camera`, `textarea`, and similar native surfaces as separate rendering layers
+- When a modal opens, hide or unmount any native surface that can overlap it; a high `z-index` alone is not a reliable fix
+- Use a full-screen fixed backdrop with `inset: 0`, an isolated stacking context, and an explicit top-layer value
+- Give modal cards dedicated opaque surface, border, shadow, and overlay tokens for both light and dark themes; do not depend on a translucent glass card over busy content
+- Apply the same button-centering contract to every modal action
 
 ### Tags And Badges
 
@@ -233,22 +258,30 @@ Before marking any miniapp UI work as done:
 
 - [ ] **Tokens**: No hardcoded hex values or magic numbers in component styles
 - [ ] **Color hierarchy**: 60-30-10 rule maintained; semantic colors used correctly
-- [ ] **Typography**: Clear size/weight hierarchy; `line-height >= 1.6` for Chinese
+- [ ] **Typography**: Clear size/weight hierarchy; `line-height >= 1.6` for Chinese body copy, with compact control line heights handled separately
 - [ ] **Spacing**: Consistent scale; related items closer than unrelated groups
 - [ ] **Touch targets**: All interactive elements >= 44px height
+- [ ] **Control alignment**: Every text or icon-and-text button is visually centered in default, pressed, disabled, and modal states
+- [ ] **Dynamic layout**: Toggling helper text, theme details, validation, or optional controls does not move unrelated content unexpectedly
+- [ ] **Overlay layering**: Modals and sheets cover or explicitly hide conflicting native components
 - [ ] **States**: Loading skeleton, empty state, and error state all designed
 - [ ] **Contrast**: Text meets WCAG AA (4.5:1 body, 3:1 large)
 - [ ] **Platform constraints**: No forbidden CSS features used (check table above)
 - [ ] **Cross-platform**: If shared component, verified on both miniapp and web
 - [ ] **Animation**: Subtle and purposeful; respects platform performance limits
+- [ ] **Runtime proof**: Capture screenshots or equivalent visual evidence for the affected state matrix
 
 ## Integration With wechat-miniapp-delivery
 
 When used together with the delivery skill:
 
 - **Plan stage**: Design skill provides the visual scope and token requirements
-- **Implement stage**: Developer follows token system and component patterns from this skill
-- **Validate stage**: Visual Quality Checklist runs as part of the acceptance gate
+- **Implement stage**: Developer follows token, control, dynamic-layout, and overlay patterns from this skill
+- **Validate stage**: Visual Quality Checklist and the affected runtime state matrix run as acceptance gates
 - **Release stage**: No visual regressions from the design standard
 
 The delivery skill's PM role can reference this checklist in the acceptance matrix. The developer role should import the token file and follow component patterns. The QA role can use the checklist for visual inspection.
+
+## Read References
+
+- Open `references/runtime-ui-quality-gates.md` for the reusable audit workflow, native button reset, layout-stability patterns, modal layering decision tree, framework notes, and acceptance matrix.

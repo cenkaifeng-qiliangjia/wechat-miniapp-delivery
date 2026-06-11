@@ -35,6 +35,24 @@ Required output:
 - screenshots or logs
 - degraded-mode note if automation fell back to simulate or manual evidence
 
+## Visual Runtime Acceptance
+
+Own rendered UI correctness for user-visible changes. Load `wechat-miniapp-design`, then use its `references/runtime-ui-quality-gates.md` for the detailed workflow.
+
+Check at least:
+- affected text-only and icon-and-text controls in default, pressed, disabled, and modal states
+- conditional helper text or validation content with hidden and visible states
+- card and neighboring-control stability during repeated toggles
+- sheets and modals in every affected theme
+- overlap with `canvas`, `map`, `video`, `camera`, `textarea`, or other native components
+- real-device behavior when simulator rendering is not representative
+
+Required output:
+- visual state matrix with pass or fail per state
+- screenshots, recording, or equivalent rendered evidence
+- audited shared control family
+- exact blocker and device or runtime when a failure remains
+
 ## Performance Acceptance QA
 
 Own release-readiness from a user-experience and runtime-cost perspective.
@@ -65,6 +83,7 @@ Every meaningful acceptance handoff should state:
 
 Keep these sections distinct:
 - functional acceptance
+- visual runtime acceptance
 - E2E acceptance
 - performance acceptance
 

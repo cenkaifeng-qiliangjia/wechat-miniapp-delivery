@@ -50,6 +50,8 @@
 - 小程序 CSS 约束与 SCSS 规范
 - 跨平台设计一致性
 - 组件模式、状态模式、视觉质量检查清单
+- 原生按钮文字/图标对齐、动态内容防抖、弹窗与 Canvas 等原生层级检查
+- 按视觉状态矩阵执行 Developer Tools / 真机运行时验收
 
 ### 两个 Skill 如何协作
 
@@ -57,7 +59,7 @@
 | --- | --- | --- |
 | Plan | 需求拆解、角色分配、风险识别、验收矩阵 | 视觉范围、token 需求、组件模式 |
 | Implement | 代码实现、云函数、配置、测试义务 | token 体系、组件样式、平台 CSS 约束 |
-| Validate | 单元、接口契约、功能验收、E2E、性能、合规 | Visual Quality Checklist |
+| Validate | 单元、接口契约、功能验收、E2E、性能、合规 | Visual Quality Checklist、运行时状态矩阵、截图证据 |
 | Release | 预览、上传、回退、观测 | 视觉回归确认 |
 
 ## 安装

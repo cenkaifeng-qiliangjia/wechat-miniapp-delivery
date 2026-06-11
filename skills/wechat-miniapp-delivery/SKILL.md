@@ -1,6 +1,6 @@
 ---
 name: wechat-miniapp-delivery
-description: Universal WeChat miniapp delivery skill for Codex, Claude Code, and OpenClaw. Use when an agent needs to plan, implement, validate, deploy, or release a WeChat mini program change across native-weapp, Taro, uni-app, or hybrid miniapp repos with coordinated developer, release-manager PM, unit and API-contract testing, functional acceptance, E2E QA, performance acceptance, CloudBase, compliance, or release fallback work.
+description: Universal WeChat miniapp delivery skill for Codex, Claude Code, and OpenClaw. Use when an agent needs to plan, implement, validate, deploy, or release a WeChat mini program change across native-weapp, Taro, uni-app, or hybrid miniapp repos with coordinated developer, release-manager PM, unit and API-contract testing, functional acceptance, visual runtime acceptance, E2E QA, performance acceptance, CloudBase, compliance, or release fallback work.
 ---
 
 # Wechat Miniapp Delivery
@@ -25,6 +25,7 @@ Common use cases:
 - If the repo is hybrid or only partially wired, split status into `feature delivery` and `release enablement`.
 - Keep outputs agent-neutral so the same skill works under Codex, Claude Code, and OpenClaw.
 - If the environment does not support subagents, emulate the same role handoffs sequentially and keep the same artifacts.
+- For user-visible UI changes, invoke `wechat-miniapp-design`, define the affected visual state matrix, and require rendered runtime evidence. Static checks alone do not close visual acceptance.
 
 ## V5 Workflow Decision
 
@@ -39,11 +40,12 @@ Common use cases:
 5. Detect backend mode: `CloudBase`, self-hosted backend, or hybrid.
 6. Detect the release path: `miniprogram-ci`, framework plugin, `manual-only`, or `blocked`.
 7. Detect the existing test stack, observability provider, and compliance config.
-8. Detect risk modules such as `payment`, `privacy`, `location`, `auth`, `AI`, `cloudbase`, or `webview-css-compat`.
+8. Detect risk modules such as `payment`, `privacy`, `location`, `auth`, `AI`, `cloudbase`, `webview-css-compat`, or `native-ui-runtime`.
 9. Detect acceptance scope:
    - functional acceptance
    - E2E acceptance
    - performance acceptance
+   - visual runtime acceptance for user-visible UI changes
    - developer test obligations for changed APIs and shared logic
 10. Run an environment doctor before choosing release or E2E scope:
    - `miniprogram-ci`: Node `>=16.1.0`
@@ -127,6 +129,13 @@ Use the following roles when the task is larger than a quick one-file edit or wh
 - Keep the acceptance matrix grounded in user-visible behavior rather than implementation details.
 - Return pass or fail per criterion with clear repro for any blocker.
 
+### Visual Runtime Acceptance QA
+
+- Own rendered UI correctness for user-visible changes.
+- Load `wechat-miniapp-design`, then use its `references/runtime-ui-quality-gates.md`.
+- Include button alignment, conditional-layout stability, modal or sheet layering, affected themes, and native-component overlap in the visual state matrix.
+- Capture screenshots, recordings, or equivalent runtime evidence and name the device or simulator used.
+
 ### E2E QA
 
 - Own critical-flow regression in preview or DevTools automation environments.
@@ -152,6 +161,7 @@ If subagents are available, prefer one writer plus parallel read-only or disjoin
 - Developer: app, cloud, and config files
 - Unit and API contract worker: deterministic tests and fixtures only
 - Functional QA worker: acceptance matrix only
+- Visual QA worker: visual state matrix and rendered evidence only
 - E2E QA worker: E2E scripts and evidence only
 - Performance QA worker: performance evidence only
 
@@ -159,7 +169,7 @@ Run them in this order:
 1. PM produces the plan and ownership.
 2. Developer implements against that plan.
 3. Unit and API contract validation starts as soon as implementation seams exist.
-4. Functional, E2E, and performance acceptance run in parallel on disjoint artifacts.
+4. Functional, visual runtime, E2E, and performance acceptance run in parallel on disjoint artifacts.
 5. Orchestrator integrates fixes, reruns gates, and returns to PM or release owner for final go or no-go.
 
 Do not let multiple workers edit the same files unless the write boundaries are explicit and non-overlapping.
@@ -190,8 +200,9 @@ If a high-risk gate cannot be validated, do not mark the change `publish-ready`.
   - selected capability modules
   - acceptance criteria
   - release target: `preview`, `upload`, `publish-ready`, or `none`
-  - risk modules such as `payment`, `location`, `auth`, `maps`, `AI`, or `privacy`
+  - risk modules such as `payment`, `location`, `auth`, `maps`, `AI`, `privacy`, or `native-ui-runtime`
   - functional, E2E, and performance acceptance scope
+  - visual state matrix and runtime evidence path for user-visible UI changes
   - developer test obligations for changed APIs and shared logic
   - fallback policy and rollback target
 - If the user only asked for planning, stop here and hand back the plan plus the next recommended owner.
@@ -212,6 +223,7 @@ If a high-risk gate cannot be validated, do not mark the change `publish-ready`.
 - When working in a cross-platform or hybrid repo, keep `weapp acceptance` and `shared impact` distinct.
 - When working in a Taro 4 React project, follow the framework patterns in `references/taro4-react-patterns.md` to avoid common pitfalls.
 - When building or modifying UI, follow the design system and visual standards in `wechat-miniapp-design` skill for token discipline, miniapp CSS constraints, and component patterns.
+- For buttons, conditional content, theme controls, sheets, modals, or native components, load `wechat-miniapp-design`, then read its `references/runtime-ui-quality-gates.md` and implement against the control, layout-stability, and layering rules.
 - Follow `references/developer-test-obligations.md` when touching business logic, APIs, or cloud functions.
 - Add test seams while implementing:
   - stable selectors
@@ -225,6 +237,11 @@ If a high-risk gate cannot be validated, do not mark the change `publish-ready`.
 - Run `security_compliance_gate`.
 - Run unit and interface-contract tests for changed modules, shared logic, and touched APIs.
 - Run functional acceptance against the explicit acceptance matrix.
+- Run visual runtime acceptance for user-visible UI changes:
+  - audit the full affected button or control family, not only the reported selector
+  - toggle conditional regions repeatedly and verify unrelated content remains stable
+  - open sheets and modals over any `canvas`, `map`, `video`, `camera`, or `textarea`
+  - verify affected themes and capture screenshots or equivalent rendered evidence
 - Run E2E against the core path only after the preview or DevTools environment is ready.
 - Run performance acceptance when startup, list rendering, rich content, media, or release-readiness is in scope.
 - Run CloudBase deployment only when the feature or release depends on it.
@@ -239,6 +256,7 @@ If a high-risk gate cannot be validated, do not mark the change `publish-ready`.
   - feature-delivery status
   - release-enablement status if different
   - functional acceptance status
+  - visual runtime acceptance status for UI changes
   - E2E acceptance status
   - performance acceptance status
   - developer test obligation status
@@ -310,6 +328,7 @@ User says: "The H5 page shows no styles inside the miniapp WebView."
 - Open `references/json-contracts.md` for reusable plan, validation, and release JSON shapes.
 - Open `references/example-handoff-pack.md` for a realistic PM to developer to unit to E2E handoff example.
 - Use `wechat-miniapp-design` skill for design token system, miniapp CSS constraints, component patterns, and visual quality checklist.
+- After loading `wechat-miniapp-design`, use its `references/runtime-ui-quality-gates.md` for button-label alignment, dynamic-layout stability, modal layering, native-component conflicts, and the UI acceptance matrix.
 - Open `references/delivery-toolchain-catalog.md` for the capability-module matrix, tool fragments, and portability notes.
 - Open `references/multi-platform-miniapp-patterns.md` for shared-package and framework-variant rules.
 - Open `references/qa-and-acceptance-matrix.md` for functional, E2E, and performance acceptance expectations.

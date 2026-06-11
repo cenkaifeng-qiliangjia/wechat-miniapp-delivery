@@ -1,0 +1,4 @@
+interface:
+  display_name: "WeChat Miniapp Design"
+  short_description: "Native miniapp UI patterns and visual runtime gates"
+  default_prompt: "Use $wechat-miniapp-design to build or review a miniapp UI, audit button alignment, dynamic layout stability, modal layering, design tokens, and rendered runtime states."
