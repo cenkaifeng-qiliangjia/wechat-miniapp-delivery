@@ -17,10 +17,10 @@
 - [x] 3.2 Add bounded downloads and safe ZIP extraction
 - [x] 3.3 Add staged atomic destination replacement with rollback
 - [x] 3.4 Add installer unit tests and run them in CI
-- [ ] 3.5 Validate, synchronize, commit, and push round two to primary and fork
+- [x] 3.5 Validate, synchronize, commit, and push round two to primary and fork
 
 ## 4. Completion
 
-- [ ] 4.1 Run strict OpenSpec validation and repository sync validation
-- [ ] 4.2 Archive the completed OpenSpec change into main specifications
-- [ ] 4.3 Verify final GitHub Actions runs for both repositories
+- [x] 4.1 Run strict OpenSpec validation and repository sync validation
+- [x] 4.2 Archive the completed OpenSpec change into main specifications
+- [x] 4.3 Verify final GitHub Actions runs for both repositories
