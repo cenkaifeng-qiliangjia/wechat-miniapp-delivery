@@ -12,8 +12,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Validate repository
         run: python3 scripts/validate_repo.py
+      - name: Validate OpenSpec
+        run: npx --yes @fission-ai/openspec@1.2.0 validate --all --strict --no-interactive
+      - name: Run skill behavior evals
+        run: python3 scripts/run_skill_evals.py
       - name: Smoke test local installer
         run: |
           python3 scripts/install_skill.py \

@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "ui-button-vertical-alignment",
+      "prompt": "修复保存按钮和退出弹窗按钮文字没有垂直居中的问题，并检查同类按钮。",
+      "expected_skills": [
+        "wechat-miniapp-delivery",
+        "wechat-miniapp-design"
+      ],
+      "expected_profile": "quick",
+      "required_concepts": [
+        "profile-selection",
+        "shared-button-reset",
+        "vertical-centering",
+        "rendered-evidence"
+      ],
+      "forbidden_concepts": [
+        "full-role-ceremony"
+      ]
+    },
+    {
+      "id": "ui-dynamic-theme-layout-stability",
+      "prompt": "切换随时间变化主题时会出现时间范围并导致卡片上下抖动，修复布局稳定性。",
+      "expected_skills": [
+        "wechat-miniapp-delivery",
+        "wechat-miniapp-design"
+      ],
+      "expected_profile": "quick",
+      "required_concepts": [
+        "layout-stability",
+        "rendered-evidence"
+      ],
+      "forbidden_concepts": [
+        "full-role-ceremony"
+      ]
+    },
+    {
+      "id": "ui-modal-native-layer",
+      "prompt": "退出训练弹窗被 canvas 遮住，同时修复弹窗按钮对齐并验证深浅主题。",
+      "expected_skills": [
+        "wechat-miniapp-delivery",
+        "wechat-miniapp-design"
+      ],
+      "expected_profile": "standard",
+      "required_concepts": [
+        "native-layering",
+        "shared-button-reset",
+        "rendered-evidence",
+        "standard-coordination"
+      ],
+      "forbidden_concepts": []
+    },
+    {
+      "id": "quick-local-logic-fix",
+      "prompt": "修复一个页面本地状态判断的空值错误，只改一处逻辑，不需要预览或发布。",
+      "expected_skills": [
+        "wechat-miniapp-delivery"
+      ],
+      "expected_profile": "quick",
+      "required_concepts": [
+        "focused-validation"
+      ],
+      "forbidden_concepts": [
+        "full-role-ceremony"
+      ]
+    },
+    {
+      "id": "standard-cloud-api-change",
+      "prompt": "调整云函数订单列表响应并同步前端数据映射和接口契约测试，不涉及 UI 样式。",
+      "expected_skills": [
+        "wechat-miniapp-delivery"
+      ],
+      "expected_profile": "standard",
+      "required_concepts": [
+        "api-contract-testing",
+        "standard-coordination"
+      ],
+      "forbidden_concepts": []
+    },
+    {
+      "id": "release-critical-payment-preview",
+      "prompt": "增加支付确认并准备微信小程序预览版本，需要检查隐私、密钥和回滚。",
+      "expected_skills": [
+        "wechat-miniapp-delivery"
+      ],
+      "expected_profile": "release-critical",
+      "required_concepts": [
+        "release-gates",
+        "release-evidence"
+      ],
+      "forbidden_concepts": [
+        "unverified-release-claim"
+      ]
+    },
+    {
+      "id": "release-credentials-downgrade",
+      "prompt": "上传小程序版本，但当前机器可能没有私钥或机器人权限。",
+      "expected_skills": [
+        "wechat-miniapp-delivery"
+      ],
+      "expected_profile": "release-critical",
+      "required_concepts": [
+        "downgrade-blocker",
+        "release-evidence"
+      ],
+      "forbidden_concepts": [
+        "unverified-release-claim"
+      ]
+    },
+    {
+      "id": "reuse-existing-design-system",
+      "prompt": "在已有 token 和共享按钮组件的小程序中增加一个设置卡片，保持现有视觉规范。",
+      "expected_skills": [
+        "wechat-miniapp-delivery",
+        "wechat-miniapp-design"
+      ],
+      "expected_profile": "standard",
+      "required_concepts": [
+        "existing-design-system",
+        "configuration-aware-units",
+        "rendered-evidence"
+      ],
+      "forbidden_concepts": [
+        "force-token-migration"
+      ]
+    },
+    {
+      "id": "non-miniapp-documentation",
+      "prompt": "只修改仓库根目录的贡献指南拼写，不涉及小程序代码或交付流程。",
+      "expected_skills": [],
+      "expected_profile": null,
+      "required_concepts": [],
+      "forbidden_concepts": []
+    }
+  ]
+}

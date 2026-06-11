@@ -11,6 +11,7 @@ import sys
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "catalog.json"
 IDENTITY_PATH = REPO_ROOT / "repository.json"
+EVALS_PATH = REPO_ROOT / "evals/cases.json"
 
 VISUAL_CONTRACTS = {
     "skills/wechat-miniapp-delivery/SKILL.md": [
@@ -252,11 +253,46 @@ def validate_python(validation: Validation) -> None:
             validation.errors.append(f"{path.relative_to(REPO_ROOT)}: {exc}")
 
 
+def validate_evals(validation: Validation) -> None:
+    data = load_json(EVALS_PATH, validation)
+    validation.require(
+        isinstance(data, dict) and isinstance(data.get("cases"), list),
+        "evals/cases.json: cases must be a list",
+    )
+    runner = REPO_ROOT / "scripts/run_skill_evals.py"
+    validation.require(runner.is_file(), "scripts/run_skill_evals.py: required")
+
+
+def validate_openspec(validation: Validation) -> None:
+    root = REPO_ROOT / "openspec"
+    validation.require(root.is_dir(), "openspec/: repository iteration specs are required")
+    change_root = root / "changes"
+    specs_root = root / "specs"
+    validation.require(
+        change_root.is_dir() or specs_root.is_dir(),
+        "openspec/: expected changes or archived specs",
+    )
+    for change in change_root.iterdir() if change_root.is_dir() else []:
+        if not change.is_dir() or change.name == "archive":
+            continue
+        for required in ("proposal.md", "design.md", "tasks.md"):
+            validation.require(
+                (change / required).is_file(),
+                f"openspec/changes/{change.name}: missing {required}",
+            )
+        validation.require(
+            any((change / "specs").glob("*/spec.md")),
+            f"openspec/changes/{change.name}: capability specs required",
+        )
+
+
 def main() -> int:
     validation = Validation()
     validate_identity(validation)
     validate_catalog(validation)
     validate_visual_contracts(validation)
+    validate_evals(validation)
+    validate_openspec(validation)
     validate_python(validation)
 
     if validation.errors:

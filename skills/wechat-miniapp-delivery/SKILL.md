@@ -5,7 +5,7 @@ description: Universal WeChat miniapp delivery skill for Codex, Claude Code, and
 
 # Wechat Miniapp Delivery
 
-Use this skill as an evidence-first delivery orchestrator, not a generic miniapp helper. Every medium or large task should leave behind `plan -> preflight -> implement -> validate -> release-or-blocker` outputs, each with artifacts, blockers, the next owner, and a rollback target.
+Use this skill as an evidence-first delivery orchestrator, not a generic miniapp helper. Scale the workflow to the task before choosing roles or artifacts. Standard and release-critical tasks should leave behind `plan -> preflight -> implement -> validate -> release-or-blocker` outputs, each with artifacts, blockers, the next owner, and a rollback target.
 
 Common use cases:
 - Implement a feature and produce a release candidate.
@@ -14,7 +14,7 @@ Common use cases:
 
 ## Core Rules
 
-- Start with 2-3 concrete use cases for the task at hand before editing.
+- For quick tasks, state one concrete success case. For standard or release-critical tasks, start with 2-3 concrete use cases before editing.
 - Treat release, test, deploy, and compliance work as explicit tool contracts, not ad-hoc shell commands.
 - Run an environment doctor before promising preview, upload, E2E, CloudBase MCP, or `minium`.
 - Keep structured artifacts compact and handoff-friendly. Another role should be able to continue from your summary alone.
@@ -27,46 +27,85 @@ Common use cases:
 - If the environment does not support subagents, emulate the same role handoffs sequentially and keep the same artifacts.
 - For user-visible UI changes, invoke `wechat-miniapp-design`, define the affected visual state matrix, and require rendered runtime evidence. Static checks alone do not close visual acceptance.
 
+## Select A Delivery Profile
+
+Select exactly one profile before planning. Discovered risk can increase rigor, never reduce it.
+
+### `quick`
+
+Use when the change is local, low-risk, usually one file or one component family, does not alter a shared API contract, and does not request preview, upload, deploy, or publish.
+
+Required exit evidence:
+- changed files and concise rationale
+- focused static, unit, or runtime validation appropriate to the change
+- visual state evidence when UI is affected
+- residual risk or explicit `none`
+
+Do not create a full PM task graph, assign every QA role, run environment doctor, or produce release and rollback artifacts unless the task discovers wider impact.
+
+### `standard`
+
+Use for feature-sized work, multi-file changes, shared UI or logic, touched API contracts, or work requiring coordinated functional, visual, E2E, or performance acceptance.
+
+Required exit evidence:
+- scoped plan and acceptance dimensions
+- relevant environment or tool preflight
+- implementation and developer test obligations
+- applicable acceptance artifacts and blockers
+- next owner; rollback only when stateful or release-sensitive work is involved
+
+### `release-critical`
+
+Use for preview, upload, deploy, publish, production configuration, privileged credentials, payment, privacy, authentication, production data, or rollback-sensitive infrastructure.
+
+Required exit evidence:
+- full plan, environment doctor, preflight, risk register, and ownership
+- all applicable quality and compliance gates
+- release or blocker evidence, observation plan, next owner, and rollback target
+
+Escalate `quick -> standard` when shared contracts, multiple ownership areas, or broader regressions appear. Escalate any task to `release-critical` when release intent or a high-risk module enters scope.
+
 ## V5 Workflow Decision
 
 1. Inspect the repo shape before planning.
-2. Detect `native-weapp`, `Taro`, `uni-app`, or a hybrid cross-platform workspace.
+2. Select `quick`, `standard`, or `release-critical` using the rules above.
+3. Detect `native-weapp`, `Taro`, `uni-app`, or a hybrid cross-platform workspace.
    - Read `references/multi-platform-miniapp-patterns.md` when the repo mixes shared packages, more than one shell, or more than one framework variant.
    - If Taro 4 with React, read `references/taro4-react-patterns.md` before implementing.
-3. Detect whether the miniapp is a **WebView shell** (thin native shell loading an H5 app via `<web-view>`) or a native-page miniapp.
+4. Detect whether the miniapp is a **WebView shell** (thin native shell loading an H5 app via `<web-view>`) or a native-page miniapp.
    - Read `references/webview-shell-patterns.md` when the miniapp has very few native pages and loads an H5 URL in a `<web-view>`.
    - WebView shell projects have distinct delivery, testing, CSS compatibility, and release coordination concerns.
-4. Detect the framework subtype that actually owns the WeChat build target.
-5. Detect backend mode: `CloudBase`, self-hosted backend, or hybrid.
-6. Detect the release path: `miniprogram-ci`, framework plugin, `manual-only`, or `blocked`.
-7. Detect the existing test stack, observability provider, and compliance config.
-8. Detect risk modules such as `payment`, `privacy`, `location`, `auth`, `AI`, `cloudbase`, `webview-css-compat`, or `native-ui-runtime`.
-9. Detect acceptance scope:
+5. Detect the framework subtype that actually owns the WeChat build target.
+6. Detect backend mode: `CloudBase`, self-hosted backend, or hybrid.
+7. Detect the release path: `miniprogram-ci`, framework plugin, `manual-only`, or `blocked`.
+8. Detect the existing test stack, observability provider, and compliance config.
+9. Detect risk modules such as `payment`, `privacy`, `location`, `auth`, `AI`, `cloudbase`, `webview-css-compat`, or `native-ui-runtime`.
+10. Detect acceptance scope:
    - functional acceptance
    - E2E acceptance
    - performance acceptance
    - visual runtime acceptance for user-visible UI changes
    - developer test obligations for changed APIs and shared logic
-10. Run an environment doctor before choosing release or E2E scope:
+11. For standard and release-critical work, run an environment doctor before choosing release or E2E scope:
    - `miniprogram-ci`: Node `>=16.1.0`
    - CloudBase MCP: Node `>=18.15.0`
    - `minium`: Python `>=3.8`
-11. Choose one or more capability modules:
+12. Choose one or more capability modules:
    - `weapp_ci_release`
    - `weapp_test_automation`
    - `cloudbase_env_deploy`
    - `security_compliance_gate`
-12. Choose one working mode:
+13. Choose one working mode:
    - `plan`
    - `implement`
    - `validate`
    - `release`
-13. If the repo is not a WeChat mini program project, stop and say so clearly.
-14. If the repo is hybrid or only partially wired for release, split the work into:
+14. If the repo is not a WeChat mini program project, stop and say so clearly.
+15. If the repo is hybrid or only partially wired for release, split the work into:
    - delivery work that is safe now
    - release-enablement work that must be finished before preview or upload
-15. If credentials, DevTools automation, or release keys are missing, continue only with the safe stages and hand back an explicit blocker list.
-16. If the project is a WebView shell, also determine whether the current change requires a miniapp release, an H5 deployment, or both. Read `references/webview-shell-patterns.md` for release coordination rules.
+16. If credentials, DevTools automation, or release keys are missing, continue only with the safe stages and hand back an explicit blocker list.
+17. If the project is a WebView shell, also determine whether the current change requires a miniapp release, an H5 deployment, or both. Read `references/webview-shell-patterns.md` for release coordination rules.
 
 Read `references/delivery-toolchain-catalog.md` when you need the module matrix, contract fragments, or downgrade policy.
 Read `references/qa-and-acceptance-matrix.md` when you need acceptance-role boundaries or evidence requirements.
@@ -102,7 +141,7 @@ Use capability modules as the first-class execution units for delivery work:
 
 ## Orchestrate Roles
 
-Use the following roles when the task is larger than a quick one-file edit or when the user explicitly wants parallelism.
+Use the following roles for standard or release-critical work, or when the user explicitly wants parallelism. Keep quick work local unless a narrow independent validation pass adds clear value.
 
 ### Version Manager PM
 
@@ -194,6 +233,7 @@ If a high-risk gate cannot be validated, do not mark the change `publish-ready`.
 ### 1. Plan
 
 - Translate the request into `Plan JSON`.
+- Record `workflow_profile`: `quick`, `standard`, or `release-critical`.
 - Record:
   - feature goal
   - framework, runtime, backend, and shared-code path
@@ -205,6 +245,7 @@ If a high-risk gate cannot be validated, do not mark the change `publish-ready`.
   - visual state matrix and runtime evidence path for user-visible UI changes
   - developer test obligations for changed APIs and shared logic
   - fallback policy and rollback target
+- For quick work, use the minimal response shape instead of expanding the full task graph.
 - If the user only asked for planning, stop here and hand back the plan plus the next recommended owner.
 - Read `references/json-contracts.md` when you need a ready-made schema.
 

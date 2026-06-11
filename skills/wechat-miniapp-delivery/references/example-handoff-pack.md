@@ -14,7 +14,8 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
 {
   "summary": {
     "decision": "needs-review",
-    "stage": "plan"
+    "stage": "plan",
+    "workflow_profile": "standard"
   },
   "env_doctor": {
     "status": "pass",
@@ -274,7 +275,8 @@ Use this summary when all workers return:
 {
   "summary": {
     "decision": "needs-review",
-    "stage": "release_candidate"
+    "stage": "release_candidate",
+    "workflow_profile": "release-critical"
   },
   "feature_delivery": {
     "status": "pass",

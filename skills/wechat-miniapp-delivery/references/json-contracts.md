@@ -7,6 +7,7 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
 ```json
 {
   "mode": "plan|implement|validate|release",
+  "workflow_profile": "quick|standard|release-critical",
   "execution_surface": {
     "agent": "codex|claude-code|openclaw",
     "subagents_available": true
@@ -105,7 +106,8 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
 {
   "summary": {
     "decision": "needs-review",
-    "stage": "plan"
+    "stage": "plan",
+    "workflow_profile": "standard"
   },
   "env_doctor": {
     "status": "pass|fail|needs-setup",
@@ -203,7 +205,8 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
 {
   "summary": {
     "decision": "pass|fail|needs-review",
-    "stage": "validate|release_candidate|post_release"
+    "stage": "validate|release_candidate|post_release",
+    "workflow_profile": "standard|release-critical"
   },
   "feature_delivery": {
     "status": "pass|fail|needs-review",
@@ -371,6 +374,7 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
 
 For small tasks, reduce the response to these fields:
 - `summary`
+- `workflow_profile`
 - `feature_delivery`
 - `release_enablement`
 - `env_doctor`

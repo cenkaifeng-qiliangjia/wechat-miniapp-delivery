@@ -16,11 +16,14 @@
 ├── .gitignore
 ├── catalog.json
 ├── repository.json
+├── evals/cases.json
+├── openspec/
 ├── .github/workflows/validate.yml
 ├── scripts/
 │   ├── check_repository_sync.py
 │   ├── install_from_github.py
 │   ├── install_skill.py
+│   ├── run_skill_evals.py
 │   ├── sync_skill_layout.py
 │   └── validate_repo.py
 └── skills/
@@ -36,8 +39,10 @@
 - `scripts/sync_skill_layout.py`：按需生成本地 `.codex/`、`.claude/` 镜像，仅用于联调
 - `scripts/validate_repo.py`：校验 Skill 结构、JSON 示例、引用、仓库身份和 Visual QA 契约
 - `scripts/check_repository_sync.py`：比较主仓库与 fork，只允许仓库身份字段不同
+- `scripts/run_skill_evals.py`：运行声明式 Skill 行为契约回归
 - `catalog.json`：skills 套件分发清单
 - `repository.json`：当前仓库身份、主仓库或 fork 角色及上游关系
+- `openspec/`：Skill 重要迭代的 proposal、spec、design、tasks 与归档能力规范
 
 ## Skill 说明
 
@@ -153,14 +158,28 @@ Use $wechat-miniapp-design to review the SCSS of the dashboard page for token co
 
 ## 维护流程
 
-1. 只编辑 `skills/` 下的真源
-2. 运行 `python3 scripts/validate_repo.py`
-3. 使用 `python3 scripts/check_repository_sync.py --other <另一个仓库路径>` 检查主仓库与 fork
-4. 运行安装 smoke test
-5. 如需联调，再生成 `.codex/` / `.claude/` 镜像
-6. 提交真源与脚本改动，不提交生成镜像
+涉及 Skill 行为、工作流、分发或验证能力的重要迭代使用 OpenSpec：
 
-GitHub Actions 会在 push 和 pull request 时自动运行仓库校验及本地安装 smoke test。
+1. `openspec new change <change-name>`
+2. 完成 `proposal.md`、能力 specs、`design.md` 和 `tasks.md`
+3. 运行 `openspec validate <change-name> --strict --no-interactive`
+4. 按 `tasks.md` 实施并逐项更新状态
+5. 运行仓库校验、行为 eval、安装测试和双仓库同步检查
+6. 完成后运行 `openspec archive <change-name> -y`
+
+小型拼写或无行为变化的文档修复可以直接提交。
+
+日常实现要求：
+
+1. 只编辑 `skills/` 下的 Skill 真源
+2. 运行 `python3 scripts/validate_repo.py`
+3. 运行 `python3 scripts/run_skill_evals.py`
+4. 使用 `python3 scripts/check_repository_sync.py --other <另一个仓库路径>` 检查主仓库与 fork
+5. 运行安装 smoke test
+6. 如需联调，再生成 `.codex/` / `.claude/` 镜像
+7. 提交真源与脚本改动，不提交生成镜像
+
+GitHub Actions 会在 push 和 pull request 时自动运行仓库校验、OpenSpec strict validation、行为 eval 及本地安装 smoke test。
 
 ## 资料来源
 

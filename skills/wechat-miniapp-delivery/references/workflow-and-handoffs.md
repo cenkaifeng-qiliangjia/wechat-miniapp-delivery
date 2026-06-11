@@ -11,6 +11,16 @@ Use one or more of these starting frames:
 
 If the current task does not fit one of these frames, write a new one-sentence use case before assigning work.
 
+## Scale The Workflow First
+
+| Profile | Typical scope | Required coordination |
+| --- | --- | --- |
+| `quick` | Local low-risk fix without shared contract or release impact | One owner, focused validation, UI runtime evidence when relevant |
+| `standard` | Feature-sized, multi-file, shared logic, or coordinated acceptance | Scoped plan, relevant role handoffs, applicable acceptance evidence |
+| `release-critical` | Release operations or payment, privacy, auth, production, credential, or rollback risk | Full environment, compliance, release, observation, and rollback workflow |
+
+Do not use the role catalog below as a mandatory checklist for quick work. Escalate the profile when implementation reveals broader ownership, shared contracts, or release risk.
+
 ## Run The Delivery Stages
 
 | Stage | Primary owner | Goal | Exit artifact |

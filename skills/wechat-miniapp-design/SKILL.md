@@ -5,7 +5,7 @@ description: Design system and runtime visual quality gate for WeChat miniapp de
 
 # WeChat Miniapp Design
 
-Use this skill as the design quality gate for miniapp UI work. It ensures every page and component follows a consistent design system, respects miniapp platform constraints, and meets visual quality standards before delivery.
+Use this skill as the design quality gate for miniapp UI work. Preserve the product's existing visual language, respect miniapp platform constraints, and require runtime evidence before delivery.
 
 This skill complements `wechat-miniapp-delivery`: delivery handles the workflow (plan → implement → validate → release), design handles the visual standard (tokens → layout → components → quality check).
 
@@ -30,13 +30,21 @@ Before writing styles, answer:
 3. **Hierarchy** — What should the user see first, second, third? Establish visual weight before picking colors and sizes.
 4. **Consistency** — Does this page reuse existing tokens and patterns, or does it need new ones? Prefer reuse.
 
-## Design Token System
+## Reuse The Existing Design System First
 
-### Rule: Single Source Of Truth
+Before introducing values or abstractions, inspect:
+- existing token files, CSS variables, theme providers, and shared style modules
+- shared button, card, modal, typography, and spacing primitives
+- framework unit conversion such as Taro `designWidth`, `deviceRatio`, and PostCSS settings
+- established density, color, radius, typography, and accessibility conventions
 
-Every miniapp project should have one token file (e.g. `design-tokens.scss`) imported by all page styles. Never hardcode colors, spacing, or font sizes directly in component SCSS.
+Reuse and extend those conventions for a scoped change. Do not force a token migration, rename established variables, or replace component primitives unless the request requires a design-system refactor.
 
-### Color Tokens
+When the project has no reusable system, introduce the smallest shared foundation needed by the current scope. The values below are fallback examples, not universal requirements.
+
+## Fallback Design Token Examples
+
+### Semantic Color Example
 
 Organize colors by semantic role, not visual appearance:
 
@@ -66,14 +74,16 @@ $surface-card-glass: rgba(255, 255, 255, 0.88);
 $surface-muted: #fafafa;
 ```
 
-Follow the **60-30-10 rule**:
+The **60-30-10 rule** can be a useful starting heuristic for a new marketing or content surface:
 - 60% — Page background and neutral surfaces
 - 30% — Cards, secondary surfaces, borders
 - 10% — Brand accent (buttons, links, highlights)
 
-### Spacing Scale
+Do not enforce this ratio on data-dense tools, established products, accessibility themes, or pages whose existing hierarchy uses another system.
 
-Use a consistent scale based on 4px increments:
+### Spacing Scale Example
+
+If the project lacks a spacing scale, a compact 4px-based scale is one reasonable starting point:
 
 ```scss
 $space-2: 4px;    // Tight gaps
@@ -88,7 +98,9 @@ $space-32: 64px;  // Hero-level spacing
 
 Rule: spacing between related elements < spacing between unrelated groups.
 
-### Typography Scale
+### Typography Scale Example
+
+If the project lacks typography tokens, start with the smallest scale that supports the current hierarchy. Adapt these example values to the project's unit strategy and existing visual density:
 
 ```scss
 $text-xs: 16px;   // Micro labels
@@ -104,11 +116,11 @@ $text-4xl: 40px;  // Hero titles
 
 Rules:
 - Use `font-weight` to create hierarchy, not just size
-- Chinese content: `line-height >= 1.6`
-- Limit to 2 font families (display + body)
-- Display font for titles and KPI numbers; system font for body text
+- Use a readable body-copy line height appropriate to the font and density; `1.5-1.7` is a starting range for multi-line Chinese prose, not a control rule
+- Use compact explicit line heights for buttons, tabs, chips, labels, and single-line metrics, then verify visual centering at runtime
+- Prefer the existing font stack; introduce another family only when product requirements and runtime loading support justify it
 
-### Border Radius Scale
+### Border Radius Scale Example
 
 ```scss
 $radius-sm: 8px;     // Code blocks, small tags
@@ -120,7 +132,7 @@ $radius-3xl: 32px;   // Full-page modals
 $radius-full: 999px; // Pills, chips, avatars
 ```
 
-### Shadow Scale
+### Shadow Scale Example
 
 ```scss
 $shadow-xs: 0 4px 20px rgba(0, 0, 0, 0.06);   // Subtle lift
@@ -176,11 +188,11 @@ When building shared UI that renders on both miniapp and web:
 
 | Token | Miniapp value | Web value |
 |-------|--------------|-----------|
-| `$space-8` | `16px` (Taro converts to rpx) | `16px` or `1rem` |
-| Font sizes | `px` in SCSS, Taro handles rpx conversion | `px` or `rem` |
+| `$space-8` | Follow repo convention; `16px` only when configured conversion is verified | Follow repo convention |
+| Font sizes | Follow repo convention and build conversion | Follow repo convention |
 | Border radius | `px` | `px` |
 
-Rule: write shared styles in `px` and let the platform build tool handle conversion.
+Do not assume `px` converts to `rpx`. Verify the framework and build configuration first. For native miniapps, follow the existing `rpx` and `px` strategy. For Taro or uni-app, confirm conversion and selector behavior in the generated WeChat output.
 
 ### Color Consistency
 
@@ -202,7 +214,7 @@ Rule: write shared styles in `px` and let the platform build tool handle convers
 }
 ```
 
-Variants: glass (backdrop-filter + semi-transparent bg), warm (gradient bg for data items), elevated (stronger shadow for modals).
+Variants may include warm or elevated surfaces when they match the product. Use glass effects only after verifying WebView or miniapp runtime support and providing an opaque fallback.
 
 ### Buttons
 
@@ -256,9 +268,10 @@ Variants: glass (backdrop-filter + semi-transparent bg), warm (gradient bg for d
 
 Before marking any miniapp UI work as done:
 
-- [ ] **Tokens**: No hardcoded hex values or magic numbers in component styles
-- [ ] **Color hierarchy**: 60-30-10 rule maintained; semantic colors used correctly
-- [ ] **Typography**: Clear size/weight hierarchy; `line-height >= 1.6` for Chinese body copy, with compact control line heights handled separately
+- [ ] **System reuse**: Existing tokens, primitives, units, and visual conventions were inspected before introducing new ones
+- [ ] **Tokens**: Repeated or semantic values reuse the project system; deliberate local values are explained
+- [ ] **Color hierarchy**: Semantic colors and the product's established hierarchy are preserved
+- [ ] **Typography**: Clear size/weight hierarchy; readable body copy and explicit compact control line heights
 - [ ] **Spacing**: Consistent scale; related items closer than unrelated groups
 - [ ] **Touch targets**: All interactive elements >= 44px height
 - [ ] **Control alignment**: Every text or icon-and-text button is visually centered in default, pressed, disabled, and modal states
