@@ -7,8 +7,10 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import sys
+import uuid
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "catalog.json"
@@ -48,9 +50,49 @@ def install(src: Path, dest_root: Path, skill_name: str, force: bool) -> Path:
     if dest_dir.exists():
         if not force:
             raise FileExistsError(f"Destination already exists: {dest_dir}")
-        shutil.rmtree(dest_dir)
-    shutil.copytree(src, dest_dir)
+
+    staging = dest_root / f".{skill_name}.stage-{uuid.uuid4().hex}"
+    backup = dest_root / f".{skill_name}.backup-{uuid.uuid4().hex}"
+    moved_existing = False
+    try:
+        shutil.copytree(src, staging)
+        if dest_dir.exists():
+            dest_dir.rename(backup)
+            moved_existing = True
+        try:
+            staging.rename(dest_dir)
+        except OSError:
+            if moved_existing and backup.exists() and not dest_dir.exists():
+                backup.rename(dest_dir)
+            raise
+        if backup.exists():
+            shutil.rmtree(backup, ignore_errors=True)
+    except Exception:
+        if staging.exists():
+            shutil.rmtree(staging, ignore_errors=True)
+        if moved_existing and backup.exists() and not dest_dir.exists():
+            backup.rename(dest_dir)
+        raise
     return dest_dir
+
+
+def validate_selected_skills(
+    selected_skills: list[dict[str, object]],
+) -> list[tuple[str, Path]]:
+    validated: list[tuple[str, Path]] = []
+    root = REPO_ROOT.resolve()
+    for skill in selected_skills:
+        skill_name = skill.get("name")
+        source = skill.get("source")
+        if not isinstance(skill_name, str) or re.fullmatch(r"[a-z0-9-]+", skill_name) is None:
+            raise RuntimeError(f"Invalid skill name in catalog: {skill_name!r}")
+        if not isinstance(source, str):
+            raise RuntimeError(f"Invalid source for skill {skill_name}.")
+        source_dir = (REPO_ROOT / source).resolve()
+        if root not in source_dir.parents or not (source_dir / "SKILL.md").is_file():
+            raise RuntimeError(f"Missing or unsafe canonical skill path: {source}")
+        validated.append((skill_name, source_dir))
+    return validated
 
 
 def parse_args() -> argparse.Namespace:
@@ -86,6 +128,7 @@ def main() -> int:
     args = parse_args()
     try:
         selected_skills = select_skills(args.skill)
+        validated_skills = validate_selected_skills(selected_skills)
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -109,16 +152,11 @@ def main() -> int:
             targets.append(("openclaw", Path(args.openclaw_dest)))
 
     try:
-        for skill in selected_skills:
-            skill_name = str(skill["name"])
-            source_dir = REPO_ROOT / str(skill["source"])
-            if not (source_dir / "SKILL.md").is_file():
-                print(f"Missing canonical skill at {source_dir}", file=sys.stderr)
-                return 1
+        for skill_name, source_dir in validated_skills:
             for label, dest_root in targets:
                 dest_dir = install(source_dir, dest_root, skill_name, force=args.force)
                 print(f"Installed {skill_name} for {label} at {dest_dir}")
-    except (FileExistsError, RuntimeError) as exc:
+    except (FileExistsError, OSError, RuntimeError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
 

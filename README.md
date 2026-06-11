@@ -125,7 +125,8 @@ python3 "$CODEX_HOME/skills/.system/skill-installer/scripts/install-skill-from-g
 
 `scripts/install_from_github.py` 在本地 clone 中运行时会优先读取当前 checkout
 的 `origin`。通过上述 raw URL 执行时，则默认安装提供该脚本的仓库；也可以用
-`--repo owner/repo` 显式覆盖。
+`--repo owner/repo` 显式覆盖。远端下载带超时、仓库参数和 ZIP 路径校验；
+`--force` 使用暂存目录原子替换，失败时恢复原版本。
 
 ## 本地镜像生成
 

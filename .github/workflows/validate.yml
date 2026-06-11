@@ -21,6 +21,8 @@ jobs:
         run: npx --yes @fission-ai/openspec@1.2.0 validate --all --strict --no-interactive
       - name: Run skill behavior evals
         run: python3 scripts/run_skill_evals.py
+      - name: Test installers
+        run: python3 -m unittest discover -s tests -v
       - name: Smoke test local installer
         run: |
           python3 scripts/install_skill.py \
