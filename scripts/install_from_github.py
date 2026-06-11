@@ -7,14 +7,68 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import urllib.request
 import zipfile
 
-DEFAULT_REPO = "cenkaifeng-qiliangjia/wechat-miniapp-delivery"
+FALLBACK_REPO = "cenkaifeng-qiliangjia/wechat-miniapp-delivery"
 DEFAULT_REF = "main"
+
+
+def repo_from_checkout() -> str | None:
+    script_path = Path(__file__)
+    if not script_path.is_file():
+        return None
+
+    repo_root = script_path.resolve().parents[1]
+    if not (repo_root / "catalog.json").is_file():
+        return None
+
+    remote_name = "origin"
+    try:
+        upstream = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(repo_root),
+                "rev-parse",
+                "--abbrev-ref",
+                "--symbolic-full-name",
+                "@{upstream}",
+            ],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+        if upstream.returncode == 0 and "/" in upstream.stdout:
+            remote_name = upstream.stdout.strip().split("/", 1)[0]
+        result = subprocess.run(
+            ["git", "-C", str(repo_root), "remote", "get-url", remote_name],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+
+    remote = result.stdout.strip()
+    match = re.match(
+        r"^(?:https://|ssh://git@|git@)(?P<host>[^/:]+)(?:/|:)(?P<repo>[^/]+/[^/]+?)(?:\.git)?$",
+        remote,
+    )
+    if match and "github" in match.group("host").lower():
+        return match.group("repo")
+    return None
+
+
+def default_repo() -> str:
+    return repo_from_checkout() or FALLBACK_REPO
 
 
 def codex_root() -> Path:
@@ -28,7 +82,11 @@ def claude_root() -> Path:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Install the skill from GitHub.")
-    parser.add_argument("--repo", default=DEFAULT_REPO, help="owner/repo")
+    parser.add_argument(
+        "--repo",
+        default=default_repo(),
+        help="GitHub owner/repo. Defaults to this checkout's origin or this script's repository.",
+    )
     parser.add_argument("--ref", default=DEFAULT_REF, help="Git ref to download")
     parser.add_argument(
         "--target",
