@@ -13,7 +13,7 @@
         "claude-code",
         "openclaw"
       ],
-      "version": "5.1.0",
+      "version": "5.2.0",
       "install": {
         "canonical_repo_path": "skills/wechat-miniapp-delivery",
         "local_script": "python3 scripts/install_skill.py --target all",

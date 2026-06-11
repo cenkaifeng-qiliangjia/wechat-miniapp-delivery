@@ -331,7 +331,6 @@ User says: "The H5 page shows no styles inside the miniapp WebView."
 - After loading `wechat-miniapp-design`, use its `references/runtime-ui-quality-gates.md` for button-label alignment, dynamic-layout stability, modal layering, native-component conflicts, and the UI acceptance matrix.
 - Open `references/delivery-toolchain-catalog.md` for the capability-module matrix, tool fragments, and portability notes.
 - Open `references/multi-platform-miniapp-patterns.md` for shared-package and framework-variant rules.
-- Open `references/qa-and-acceptance-matrix.md` for functional, E2E, and performance acceptance expectations.
+- Open `references/qa-and-acceptance-matrix.md` for functional, visual runtime, E2E, and performance acceptance expectations.
 - Open `references/developer-test-obligations.md` for unit and API-contract test responsibilities.
 - Open `references/webview-shell-patterns.md` for WebView shell architecture, bridge communication, CSS compatibility, domain verification, and release coordination.
-- Use `wechat-miniapp-design` skill for design token system, miniapp CSS constraints, component patterns, and visual quality checklist.

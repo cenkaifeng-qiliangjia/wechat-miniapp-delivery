@@ -1,6 +1,6 @@
 # Example Handoff Pack
 
-Use this reference when the request is feature-sized and you want a concrete example of how to hand work across PM, developer, unit and API-contract testing, functional QA, E2E QA, and performance QA roles.
+Use this reference when the request is feature-sized and you want a concrete example of how to hand work across PM, developer, unit and API-contract testing, functional QA, visual runtime QA, E2E QA, and performance QA roles.
 
 ## Example Request
 
@@ -71,18 +71,24 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
     },
     {
       "id": "T4",
+      "owner": "visual_qa",
+      "scope": "filter controls, refresh states, conditional content, and rendered runtime evidence",
+      "acceptance": "Affected states render without alignment, layout-shift, or layering regressions"
+    },
+    {
+      "id": "T5",
       "owner": "e2e",
       "scope": "order list filter flow and refresh flow",
       "acceptance": "Critical user path passes in automation"
     },
     {
-      "id": "T5",
+      "id": "T6",
       "owner": "performance_qa",
       "scope": "first-screen latency and request-count comparison",
       "acceptance": "No unacceptable regression against baseline"
     },
     {
-      "id": "T6",
+      "id": "T7",
       "owner": "pm",
       "scope": "preview readiness and release evidence",
       "acceptance": "Preview blockers and release prerequisites are explicit"
@@ -108,6 +114,7 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
     "artifacts": [
       "plan_json",
       "acceptance_matrix",
+      "visual_state_matrix",
       "risk_list",
       "env_doctor"
     ]
@@ -123,6 +130,8 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
 | Changing the filter updates the list correctly | Unit test plus E2E evidence | Unit and E2E |
 | Pull-to-refresh keeps the selected filter and refreshes data | Unit test plus manual or E2E evidence | Developer, unit, E2E |
 | Empty state and retry state remain correct | Functional acceptance plus unit evidence | Functional QA and unit |
+| Filter, refresh, and modal controls remain vertically aligned in every affected state | Rendered state matrix and screenshots | Visual runtime QA |
+| Conditional content does not shift neighboring cards or controls unexpectedly | Repeated-toggle recording or before-and-after screenshots | Visual runtime QA |
 | Order list API request and response assumptions stay valid | Contract test or deterministic fixture check | Developer and unit |
 | No unacceptable regression on first screen or request count | Performance baseline comparison | Performance QA |
 | Preview release can be attempted safely | Preflight or release report with blockers or success evidence | PM |
@@ -132,6 +141,7 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
 
 - Upload robot permission may be missing even if preview works.
 - Existing list selectors may be unstable for E2E.
+- Native button defaults or conditional helper text may cause visual regressions.
 - Order status mapping may be duplicated in UI and API layers.
 
 ### Preflight Notes
@@ -140,6 +150,7 @@ Add status filtering and pull-to-refresh to the order list page, then prepare th
 - Upload robot permission is not enabled yet, so preview is allowed but upload is blocked.
 - Existing RUM provider is available and should receive the preview tag.
 - Current main branch is the performance comparison baseline.
+- WeChat DevTools is available for visual-state capture; use a real device if native-component layering differs.
 
 ## Developer Handoff
 
@@ -197,6 +208,28 @@ Expected output:
 - acceptance matrix
 - failed criteria
 - residual risk list
+
+## Visual Runtime QA Handoff
+
+Give the visual runtime QA worker:
+- Goal: verify filter controls, refresh actions, conditional states, and any sheets or modals render correctly.
+- Non-goals: do not redesign unrelated UI or accept static code inspection as visual proof.
+- Owned paths:
+  - visual state matrix
+  - screenshots or recordings
+  - visual acceptance notes
+- Success check:
+  - text-only and icon-and-text controls are vertically centered
+  - repeated state changes do not shift neighboring cards or controls
+  - overlays remain above affected native components
+  - every affected theme and disabled or loading state is marked pass, fail, or blocked
+
+Expected output:
+- visual state matrix
+- audited shared control families
+- rendered artifact paths
+- exact runtime and device used
+- unresolved visual blockers
 
 ## E2E Handoff
 
@@ -289,6 +322,20 @@ Use this summary when all workers return:
       "failed_criteria": [],
       "artifacts": []
     },
+    "visual_runtime_acceptance": {
+      "ok": true,
+      "runtime": "wechat-devtools",
+      "device": "iPhone 15 simulator",
+      "failed_states": [],
+      "audited_control_families": [
+        "filter-buttons",
+        "refresh-actions"
+      ],
+      "artifacts": [
+        "./artifacts/visual/order-list-filter-default.png",
+        "./artifacts/visual/order-list-filter-refreshing.png"
+      ]
+    },
     "e2e": {
       "ok": true,
       "failed_flows": [],
@@ -334,6 +381,7 @@ Use this summary when all workers return:
     "next_action": "enable_upload_robot_then_retry_upload",
     "artifacts": [
       "validation_summary",
+      "visual_runtime_evidence",
       "e2e_artifacts",
       "release_blocker_list"
     ]

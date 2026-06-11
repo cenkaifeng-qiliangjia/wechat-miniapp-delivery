@@ -1,0 +1,6 @@
+{
+  "repository": "cenkaifeng-qiliangjia/wechat-miniapp-delivery",
+  "role": "fork",
+  "upstream": "Cenkaifeng/wechat-miniapp-delivery",
+  "default_ref": "main"
+}

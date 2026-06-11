@@ -1,0 +1,23 @@
+name: Validate skill suite
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate repository
+        run: python3 scripts/validate_repo.py
+      - name: Smoke test local installer
+        run: |
+          python3 scripts/install_skill.py \
+            --target codex \
+            --dest "$RUNNER_TEMP/skills"
+          test -f "$RUNNER_TEMP/skills/wechat-miniapp-delivery/SKILL.md"
+          test -f "$RUNNER_TEMP/skills/wechat-miniapp-design/SKILL.md"

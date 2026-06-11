@@ -59,12 +59,13 @@ When shared code is touched, track at least two acceptance scopes:
 
 For WeChat release work, keep these acceptance dimensions explicit:
 - functional acceptance
+- visual runtime acceptance on the actual WeChat target
 - E2E acceptance
 - performance acceptance
 - developer test obligations for touched APIs and shared logic
 
 ## Escalate When A Repo Needs Variant-Specific Rules
 
-- If the repo is Taro 4 with React, also read `references/taro4-react-patterns.md`.
+- If the repo is Taro 4 with React, also read [Taro 4 React patterns](taro4-react-patterns.md).
 - If the repo uses a framework variant with recurring pitfalls, add a dedicated reference instead of bloating `SKILL.md`.
 - If a shared package requires platform branching, document the branch boundary and why the abstraction could not stay pure.

@@ -32,7 +32,7 @@ Use the repo layout to classify the project:
 
 If the classification is ambiguous, stop and inspect the build scripts before editing release logic.
 
-When the project is a WebView shell, read `references/webview-shell-patterns.md` for the full architecture, CSS compatibility, bridge communication, and release coordination rules.
+When the project is a WebView shell, read [WebView shell patterns](webview-shell-patterns.md) for the full architecture, CSS compatibility, bridge communication, and release coordination rules.
 
 ## Multi-Platform Preflight
 
@@ -120,6 +120,7 @@ Use these defaults unless the repo already standardized on an equivalent:
 - API contract checks: request or response fixture validation in the repo test runner
 - E2E: `miniprogram-automator` or `minium`
 - Functional acceptance: explicit acceptance matrix plus manual or scripted evidence
+- Visual runtime acceptance: WeChat DevTools or real-device state matrix with screenshots or recordings
 - Performance acceptance: repo budgets, DevTools metrics, RUM comparisons, or baseline-to-main diffs
 - Observability: RUM or Sentry
 - Secrets scan: `gitleaks` plus `trufflehog`
@@ -167,6 +168,14 @@ Use these defaults unless the repo already standardized on an equivalent:
 - cover the top 1-3 user flows that prove the change works
 - use stable selectors
 - collect screenshots, logs, and failure evidence
+
+### Visual runtime acceptance gate
+
+- load `wechat-miniapp-design` and its `references/runtime-ui-quality-gates.md`
+- verify affected text-only and icon-and-text controls in default, pressed, disabled, loading, and modal states
+- repeatedly toggle conditional content and confirm neighboring cards or controls do not shift unexpectedly
+- verify sheets and modals in every affected theme and against native components such as `canvas`, `map`, `video`, `camera`, and `textarea`
+- record the runtime, device, visual state matrix, audited shared control family, and rendered evidence
 
 ### Performance acceptance gate
 

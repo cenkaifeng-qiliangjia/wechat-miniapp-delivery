@@ -79,6 +79,10 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
       "filter_options_match_supported_states",
       "refresh_preserves_selected_filter"
     ],
+    "visual_runtime_acceptance": [
+      "filter_controls_remain_vertically_aligned",
+      "refresh_and_filter_states_do_not_shift_neighboring_layout"
+    ],
     "performance_acceptance": [
       "no_regression_on_first_screen",
       "request_count_stays_within_baseline"
@@ -144,12 +148,18 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     },
     {
       "id": "T4",
+      "owner": "visual_qa",
+      "scope": "visual state matrix and rendered runtime evidence",
+      "acceptance": "Affected controls, conditional content, and overlays render correctly"
+    },
+    {
+      "id": "T5",
       "owner": "e2e",
       "scope": "tests/e2e/order-list-filter",
       "acceptance": "Critical flow passes in automation"
     },
     {
-      "id": "T5",
+      "id": "T6",
       "owner": "performance_qa",
       "scope": "first-screen latency and request-count comparison",
       "acceptance": "No unacceptable regression against baseline"
@@ -175,6 +185,7 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     "artifacts": [
       "plan",
       "acceptance_matrix",
+      "visual_state_matrix",
       "risk_list",
       "env_doctor"
     ]
@@ -279,6 +290,20 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
       "failed_criteria": [],
       "artifacts": []
     },
+    "visual_runtime_acceptance": {
+      "ok": true,
+      "runtime": "wechat-devtools|real-device",
+      "device": "iPhone 15 simulator",
+      "failed_states": [],
+      "audited_control_families": [
+        "filter-buttons",
+        "refresh-actions"
+      ],
+      "artifacts": [
+        "./artifacts/visual/order-list-filter-default.png",
+        "./artifacts/visual/order-list-filter-refreshing.png"
+      ]
+    },
     "e2e": {
       "ok": true,
       "failed_flows": [],
@@ -329,6 +354,7 @@ Use these contracts for planning, validation, and release handoffs. Keep them co
     "artifacts": [
       "validation_summary",
       "functional_acceptance",
+      "visual_runtime_evidence",
       "performance_report",
       "release_evidence",
       "rollback_target"

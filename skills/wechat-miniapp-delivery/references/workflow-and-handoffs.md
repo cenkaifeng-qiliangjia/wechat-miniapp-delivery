@@ -22,6 +22,7 @@ If the current task does not fit one of these frames, write a new one-sentence u
 | Tool gates | Developer, unit, QA, or orchestrator | Catch formatting, secrets, privacy, unit, contract, E2E, performance, and deploy issues | Capability-run summary with pass, fail, or degraded mode |
 | Unit and contract gate | Unit and API contract test | Prove changed logic and touched interfaces are deterministic and covered | Coverage, fixture, and contract report |
 | Functional acceptance | Functional QA plus PM | Verify business correctness, edge cases, and user-visible failure behavior | Functional acceptance matrix |
+| Visual runtime acceptance | Visual QA plus developer | Verify rendered alignment, layout stability, themes, overlays, and native-component layering | Visual state matrix and rendered evidence |
 | E2E acceptance | E2E QA plus PM | Verify the main user path and gather automation evidence | E2E evidence pack and go or no-go recommendation |
 | Performance acceptance | Performance QA plus PM | Verify the release candidate does not introduce unacceptable runtime regressions | Performance acceptance report |
 | Release and watch | Release owner, defaulting to PM | Produce preview or upload evidence, watch notes, and rollback readiness | Release summary, observation notes, rollback target |
@@ -31,7 +32,7 @@ Use a sequential workflow for the main path and an iterative refinement loop aft
 2. PM and developer run environment doctor and preflight.
 3. Developer implements.
 4. Unit and contract validation starts as soon as implementation seams exist.
-5. Functional, E2E, and performance acceptance validate in parallel where possible.
+5. Functional, visual runtime, E2E, and performance acceptance validate in parallel where possible.
 6. Orchestrator or developer fixes.
 7. PM or release owner closes the loop.
 
@@ -122,6 +123,22 @@ Default ownership:
 - acceptance artifacts
 - screenshots or lightweight repro assets
 
+### Visual runtime QA worker
+
+Use for rendered UI correctness whenever user-visible layout, styling, controls, themes, conditional content, sheets, modals, or native components change.
+
+Expected output:
+- visual state matrix
+- rendered screenshots, recordings, or equivalent evidence
+- audited shared control families
+- runtime and device used
+- unresolved alignment, layout-shift, or layering blockers
+
+Default ownership:
+- visual acceptance notes
+- screenshots or recordings
+- visual state matrix artifacts
+
 ### E2E QA worker
 
 Use for critical-path automation and acceptance evidence.
@@ -170,7 +187,7 @@ Expected output:
 Keep the normal handoff chain:
 1. PM to developer
 2. Developer to unit and API contract worker
-3. Developer or orchestrator to functional, E2E, and performance QA
+3. Developer or orchestrator to functional, visual runtime, E2E, and performance QA
 4. QA roles back to PM or release owner
 5. PM to release owner or human approver
 
@@ -181,7 +198,7 @@ Each handoff must state:
 - what remains blocked
 - whether the run degraded to a fallback path
 - whether `feature delivery` and `release enablement` differ
-- which acceptance dimensions passed: functional, E2E, performance, developer test obligations
+- which acceptance dimensions passed: functional, visual runtime, E2E, performance, developer test obligations
 - who owns the next action
 
 Never hand off only a diff. Always include a short decision-oriented summary.

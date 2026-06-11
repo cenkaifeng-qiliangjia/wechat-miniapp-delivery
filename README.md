@@ -15,10 +15,14 @@
 ├── README.md
 ├── .gitignore
 ├── catalog.json
+├── repository.json
+├── .github/workflows/validate.yml
 ├── scripts/
+│   ├── check_repository_sync.py
 │   ├── install_from_github.py
 │   ├── install_skill.py
-│   └── sync_skill_layout.py
+│   ├── sync_skill_layout.py
+│   └── validate_repo.py
 └── skills/
     ├── wechat-miniapp-delivery/
     └── wechat-miniapp-design/
@@ -30,7 +34,10 @@
 - `scripts/install_skill.py`：从本地 clone 安装整套 skills，或按名称筛选安装
 - `scripts/install_from_github.py`：不 clone 仓库，直接从 GitHub 安装整套 skills，或按名称筛选安装
 - `scripts/sync_skill_layout.py`：按需生成本地 `.codex/`、`.claude/` 镜像，仅用于联调
+- `scripts/validate_repo.py`：校验 Skill 结构、JSON 示例、引用、仓库身份和 Visual QA 契约
+- `scripts/check_repository_sync.py`：比较主仓库与 fork，只允许仓库身份字段不同
 - `catalog.json`：skills 套件分发清单
+- `repository.json`：当前仓库身份、主仓库或 fork 角色及上游关系
 
 ## Skill 说明
 
@@ -147,10 +154,13 @@ Use $wechat-miniapp-design to review the SCSS of the dashboard page for token co
 ## 维护流程
 
 1. 只编辑 `skills/` 下的真源
-2. 用 validator 校验真源
-3. 运行安装 smoke test
-4. 如需联调，再生成 `.codex/` / `.claude/` 镜像
-5. 提交真源与脚本改动，不提交生成镜像
+2. 运行 `python3 scripts/validate_repo.py`
+3. 使用 `python3 scripts/check_repository_sync.py --other <另一个仓库路径>` 检查主仓库与 fork
+4. 运行安装 smoke test
+5. 如需联调，再生成 `.codex/` / `.claude/` 镜像
+6. 提交真源与脚本改动，不提交生成镜像
+
+GitHub Actions 会在 push 和 pull request 时自动运行仓库校验及本地安装 smoke test。
 
 ## 资料来源
 
