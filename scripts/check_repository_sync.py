@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-IGNORED_PARTS = {".git", "__pycache__"}
+IGNORED_PARTS = {".git", ".codex", ".claude", "__pycache__"}
 IDENTITY_AWARE_FILES = {
     Path("README.md"),
     Path("catalog.json"),
