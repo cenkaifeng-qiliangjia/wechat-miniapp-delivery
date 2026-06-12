@@ -182,6 +182,17 @@ Use $wechat-miniapp-design to review the SCSS of the dashboard page for token co
 
 GitHub Actions 会在 push 和 pull request 时自动运行仓库校验、OpenSpec strict validation、行为 eval 及本地安装 smoke test。
 
+### 上下文预算
+
+Skill 主入口只保留决策、风险升级和验收底线，详细工具、框架、角色和示例按触发条件读取 reference：
+
+- `wechat-miniapp-delivery/SKILL.md`：最多 2200 词、300 行
+- `wechat-miniapp-design/SKILL.md`：最多 1500 词、230 行
+- quick 任务只加载直接相关的窄 reference
+- release-critical 任务按风险加载工作流、工具、契约和框架 reference
+
+`scripts/validate_repo.py` 会阻止主入口超过预算；行为 eval 同时检查必需和禁止加载的 reference，避免为了省 token 丢失必要能力。
+
 ## 资料来源
 
 - Anthropic《The Complete Guide to Building Skills for Claude》

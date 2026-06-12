@@ -33,6 +33,25 @@ def archive_bytes(entries: dict[str, str]) -> bytes:
 
 
 class RemoteInputTests(unittest.TestCase):
+    def test_parse_github_repository(self) -> None:
+        remotes = {
+            "https://github.com/Cenkaifeng/wechat-miniapp-delivery.git": (
+                "Cenkaifeng/wechat-miniapp-delivery"
+            ),
+            "git@github-personal:Cenkaifeng/wechat-miniapp-delivery.git": (
+                "Cenkaifeng/wechat-miniapp-delivery"
+            ),
+        }
+        for remote, expected in remotes.items():
+            with self.subTest(remote=remote):
+                self.assertEqual(REMOTE.parse_github_repository(remote), expected)
+
+        self.assertIsNone(
+            REMOTE.parse_github_repository(
+                "https://gitlab.com/Cenkaifeng/wechat-miniapp-delivery.git"
+            )
+        )
+
     def test_repository_and_ref_validation(self) -> None:
         self.assertEqual(
             REMOTE.validate_repository_ref("owner/repo", "refs/tags/v1.2.3"),

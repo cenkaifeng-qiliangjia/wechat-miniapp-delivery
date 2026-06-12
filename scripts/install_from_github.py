@@ -25,35 +25,10 @@ REPOSITORY_PATTERN = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 REF_PATTERN = re.compile(r"[A-Za-z0-9._/-]+")
 
 
-def repo_from_checkout() -> str | None:
-    script_path = Path(__file__)
-    if not script_path.is_file():
-        return None
-
-    repo_root = script_path.resolve().parents[1]
-    if not (repo_root / "catalog.json").is_file():
-        return None
-
-    remote_name = "origin"
+def run_git(repo_root: Path, *args: str) -> str | None:
     try:
-        upstream = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(repo_root),
-                "rev-parse",
-                "--abbrev-ref",
-                "--symbolic-full-name",
-                "@{upstream}",
-            ],
-            capture_output=True,
-            check=False,
-            text=True,
-        )
-        if upstream.returncode == 0 and "/" in upstream.stdout:
-            remote_name = upstream.stdout.strip().split("/", 1)[0]
         result = subprocess.run(
-            ["git", "-C", str(repo_root), "remote", "get-url", remote_name],
+            ["git", "-C", str(repo_root), *args],
             capture_output=True,
             check=False,
             text=True,
@@ -62,15 +37,44 @@ def repo_from_checkout() -> str | None:
         return None
     if result.returncode != 0:
         return None
+    return result.stdout.strip()
 
-    remote = result.stdout.strip()
+
+def current_remote_name(repo_root: Path) -> str:
+    remote_name = "origin"
+    upstream = run_git(
+        repo_root,
+        "rev-parse",
+        "--abbrev-ref",
+        "--symbolic-full-name",
+        "@{upstream}",
+    )
+    if upstream and "/" in upstream:
+        remote_name = upstream.split("/", 1)[0]
+    return remote_name
+
+
+def parse_github_repository(remote: str) -> str | None:
     match = re.match(
-        r"^(?:https://|ssh://git@|git@)(?P<host>[^/:]+)(?:/|:)(?P<repo>[^/]+/[^/]+?)(?:\.git)?$",
+        r"^(?:https://|ssh://git@|git@)(?P<host>[^/:]+)(?:/|:)"
+        r"(?P<repo>[^/]+/[^/]+?)(?:\.git)?$",
         remote,
     )
     if match and "github" in match.group("host").lower():
         return match.group("repo")
     return None
+
+
+def repo_from_checkout() -> str | None:
+    script_path = Path(__file__)
+    if not script_path.is_file():
+        return None
+
+    repo_root = script_path.resolve().parents[1]
+    if not (repo_root / "catalog.json").is_file():
+        return None
+    remote = run_git(repo_root, "remote", "get-url", current_remote_name(repo_root))
+    return parse_github_repository(remote) if remote else None
 
 
 def default_repo() -> str:

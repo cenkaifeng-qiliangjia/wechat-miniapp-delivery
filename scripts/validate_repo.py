@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ast
 import json
 from pathlib import Path
 import re
@@ -12,6 +13,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "catalog.json"
 IDENTITY_PATH = REPO_ROOT / "repository.json"
 EVALS_PATH = REPO_ROOT / "evals/cases.json"
+FUNCTION_LINE_LIMIT = 45
+SKILL_BUDGETS = {
+    "wechat-miniapp-delivery": {"words": 2200, "lines": 300},
+    "wechat-miniapp-design": {"words": 1500, "lines": 230},
+}
 
 VISUAL_CONTRACTS = {
     "skills/wechat-miniapp-delivery/SKILL.md": [
@@ -81,12 +87,10 @@ def parse_frontmatter(path: Path, validation: Validation) -> dict[str, str]:
     return values
 
 
-def validate_identity(validation: Validation) -> dict[str, object]:
-    identity = load_json(IDENTITY_PATH, validation)
-    if not isinstance(identity, dict):
-        validation.errors.append("repository.json: expected an object")
-        return {}
-
+def validate_identity_shape(
+    identity: dict[str, object],
+    validation: Validation,
+) -> str | None:
     repository = identity.get("repository")
     role = identity.get("role")
     upstream = identity.get("upstream")
@@ -100,38 +104,51 @@ def validate_identity(validation: Validation) -> dict[str, object]:
     validation.require(default_ref == "main", "repository.json: default_ref must be main")
     if role == "primary":
         validation.require(upstream is None, "repository.json: primary repository must not set upstream")
-    else:
+    elif role == "fork":
         validation.require(
             isinstance(upstream, str) and upstream != repository,
             "repository.json: fork must name a different upstream repository",
         )
+    return repository if isinstance(repository, str) else None
 
-    if isinstance(repository, str):
-        installer = (REPO_ROOT / "scripts/install_from_github.py").read_text()
-        validation.require(
-            f'FALLBACK_REPO = "{repository}"' in installer,
-            "scripts/install_from_github.py: FALLBACK_REPO must match repository.json",
-        )
 
-        referenced_repositories: set[str] = set()
-        for relative in ("README.md", "catalog.json"):
-            text = (REPO_ROOT / relative).read_text()
-            referenced_repositories.update(
-                re.findall(
-                    r"(?:github\.com|raw\.githubusercontent\.com)/"
-                    r"([A-Za-z0-9_.-]+/wechat-miniapp-delivery)",
-                    text,
-                )
+def referenced_repositories() -> set[str]:
+    repositories: set[str] = set()
+    for relative in ("README.md", "catalog.json"):
+        text = (REPO_ROOT / relative).read_text()
+        repositories.update(
+            re.findall(
+                r"(?:github\.com|raw\.githubusercontent\.com)/"
+                r"([A-Za-z0-9_.-]+/wechat-miniapp-delivery)",
+                text,
             )
-            referenced_repositories.update(
-                re.findall(r"--repo ([A-Za-z0-9_.-]+/wechat-miniapp-delivery)", text)
-            )
-        validation.require(
-            referenced_repositories == {repository},
-            "README.md and catalog.json must point only to the repository declared in repository.json",
         )
+        repositories.update(
+            re.findall(r"--repo ([A-Za-z0-9_.-]+/wechat-miniapp-delivery)", text)
+        )
+    return repositories
 
-    return identity
+
+def validate_identity_references(repository: str, validation: Validation) -> None:
+    installer = (REPO_ROOT / "scripts/install_from_github.py").read_text()
+    validation.require(
+        f'FALLBACK_REPO = "{repository}"' in installer,
+        "scripts/install_from_github.py: FALLBACK_REPO must match repository.json",
+    )
+    validation.require(
+        referenced_repositories() == {repository},
+        "README.md and catalog.json must point only to repository.json repository",
+    )
+
+
+def validate_identity(validation: Validation) -> None:
+    identity = load_json(IDENTITY_PATH, validation)
+    if not isinstance(identity, dict):
+        validation.errors.append("repository.json: expected an object")
+        return
+    repository = validate_identity_shape(identity, validation)
+    if repository:
+        validate_identity_references(repository, validation)
 
 
 def validate_markdown_links(skill_root: Path, validation: Validation) -> None:
@@ -161,6 +178,60 @@ def validate_json_blocks(skill_root: Path, validation: Validation) -> None:
                 )
 
 
+def validate_skill_paths(
+    name: str,
+    source: str,
+    validation: Validation,
+) -> tuple[Path, Path] | None:
+    skill_root = (REPO_ROOT / source).resolve()
+    validation.require(
+        skill_root.parent == (REPO_ROOT / "skills").resolve(),
+        f"catalog.json: {name} source must be directly under skills/",
+    )
+    validation.require(skill_root.name == name, f"catalog.json: {name} source folder mismatch")
+    skill_md = skill_root / "SKILL.md"
+    agent_yaml = skill_root / "agents/openai.yaml"
+    validation.require(skill_md.is_file(), f"{source}: missing SKILL.md")
+    validation.require(agent_yaml.is_file(), f"{source}: missing agents/openai.yaml")
+    return (skill_md, agent_yaml) if skill_md.is_file() else None
+
+
+def validate_skill_metadata(
+    name: str,
+    source: str,
+    skill_md: Path,
+    agent_yaml: Path,
+    validation: Validation,
+) -> None:
+    frontmatter = parse_frontmatter(skill_md, validation)
+    validation.require(frontmatter.get("name") == name, f"{source}/SKILL.md: name mismatch")
+    validation.require(bool(frontmatter.get("description")), f"{source}: description required")
+    validation.require(
+        not any(skill_md.parent.rglob("README.md")),
+        f"{source}: README.md does not belong inside a skill folder",
+    )
+    if agent_yaml.is_file():
+        validation.require(
+            f"${name}" in agent_yaml.read_text(),
+            f"{source}/agents/openai.yaml: default prompt must mention ${name}",
+        )
+
+
+def validate_skill_budget(name: str, skill_md: Path, validation: Validation) -> None:
+    budget = SKILL_BUDGETS.get(name)
+    if not budget:
+        return
+    text = skill_md.read_text()
+    validation.require(
+        len(text.split()) <= budget["words"],
+        f"{name}/SKILL.md: exceeds {budget['words']} word context budget",
+    )
+    validation.require(
+        len(text.splitlines()) <= budget["lines"],
+        f"{name}/SKILL.md: exceeds {budget['lines']} line context budget",
+    )
+
+
 def validate_skill(item: dict[str, object], validation: Validation) -> None:
     name = item.get("name")
     source = item.get("source")
@@ -168,44 +239,14 @@ def validate_skill(item: dict[str, object], validation: Validation) -> None:
     validation.require(isinstance(source, str), f"catalog.json: {name} source must be a string")
     if not isinstance(name, str) or not isinstance(source, str):
         return
-
-    skill_root = (REPO_ROOT / source).resolve()
-    validation.require(
-        skill_root.parent == (REPO_ROOT / "skills").resolve(),
-        f"catalog.json: {name} source must be directly under skills/",
-    )
-    validation.require(skill_root.name == name, f"catalog.json: {name} source folder mismatch")
-
-    skill_md = skill_root / "SKILL.md"
-    agent_yaml = skill_root / "agents/openai.yaml"
-    validation.require(skill_md.is_file(), f"{source}: missing SKILL.md")
-    validation.require(agent_yaml.is_file(), f"{source}: missing agents/openai.yaml")
-    if not skill_md.is_file():
+    paths = validate_skill_paths(name, source, validation)
+    if paths is None:
         return
-
-    frontmatter = parse_frontmatter(skill_md, validation)
-    validation.require(frontmatter.get("name") == name, f"{source}/SKILL.md: name mismatch")
-    validation.require(
-        bool(frontmatter.get("description")),
-        f"{source}/SKILL.md: description is required",
-    )
-    validation.require(
-        len(skill_md.read_text().splitlines()) < 500,
-        f"{source}/SKILL.md: keep the main skill under 500 lines",
-    )
-    validation.require(
-        not any(skill_root.rglob("README.md")),
-        f"{source}: README.md does not belong inside a skill folder",
-    )
-
-    if agent_yaml.is_file():
-        validation.require(
-            f"${name}" in agent_yaml.read_text(),
-            f"{source}/agents/openai.yaml: default prompt must mention ${name}",
-        )
-
-    validate_markdown_links(skill_root, validation)
-    validate_json_blocks(skill_root, validation)
+    skill_md, agent_yaml = paths
+    validate_skill_metadata(name, source, skill_md, agent_yaml, validation)
+    validate_skill_budget(name, skill_md, validation)
+    validate_markdown_links(skill_md.parent, validation)
+    validate_json_blocks(skill_md.parent, validation)
 
 
 def validate_catalog(validation: Validation) -> None:
@@ -248,9 +289,20 @@ def validate_visual_contracts(validation: Validation) -> None:
 def validate_python(validation: Validation) -> None:
     for path in (REPO_ROOT / "scripts").glob("*.py"):
         try:
-            compile(path.read_text(), str(path), "exec")
+            source = path.read_text()
+            tree = ast.parse(source)
         except SyntaxError as exc:
             validation.errors.append(f"{path.relative_to(REPO_ROOT)}: {exc}")
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            lines = (node.end_lineno or node.lineno) - node.lineno + 1
+            validation.require(
+                lines <= FUNCTION_LINE_LIMIT,
+                f"{path.relative_to(REPO_ROOT)}:{node.lineno} "
+                f"{node.name} exceeds {FUNCTION_LINE_LIMIT} lines ({lines})",
+            )
 
 
 def validate_evals(validation: Validation) -> None:
