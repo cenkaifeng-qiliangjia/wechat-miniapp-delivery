@@ -94,6 +94,9 @@ Capture screenshots, recordings, or equivalent rendered evidence. Name the runti
 
 ## Reference Loading
 
+Load the smallest sufficient set, but do not trade away runtime proof or affected-state coverage to reduce context.
+Start from the affected UI pattern, search the reference headings, and read that section first. Expand into the audit workflow or acceptance matrix only when the current change needs those decisions. Summarize the applicable rules once and avoid rereading unrelated design-system examples.
+
 | Need | Load |
 | --- | --- |
 | Button centering, dynamic layout, modal layering, or state matrix workflow | `references/runtime-ui-quality-gates.md` |

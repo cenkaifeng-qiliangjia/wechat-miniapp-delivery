@@ -69,6 +69,10 @@ REQUIRED_CONCEPTS = {
         "skills/wechat-miniapp-design/SKILL.md",
         "Do not assume `px` converts to `rpx`",
     ),
+    "progressive-context-loading": (
+        "skills/wechat-miniapp-delivery/SKILL.md",
+        "Use progressive context loading",
+    ),
 }
 
 FORBIDDEN_CONCEPT_GUARDS = {

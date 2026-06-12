@@ -11,6 +11,7 @@
       "expected_profile": "quick",
       "required_concepts": [
         "profile-selection",
+        "progressive-context-loading",
         "shared-button-reset",
         "vertical-centering",
         "rendered-evidence"
@@ -124,6 +125,7 @@
       "expected_profile": "release-critical",
       "required_concepts": [
         "release-gates",
+        "progressive-context-loading",
         "release-evidence"
       ],
       "forbidden_concepts": [

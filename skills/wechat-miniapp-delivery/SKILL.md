@@ -70,6 +70,15 @@ Stop clearly if the repository is not a WeChat mini program project.
 ### Load References On Demand
 
 Do not open every reference preemptively.
+Context efficiency is a routing constraint, never a reason to skip guidance required by the selected profile, changed risk, or acceptance evidence.
+
+Use progressive context loading:
+
+1. Start with this entrypoint. Inspect the repository, select the profile, and list active risks, acceptance needs, and unresolved decisions.
+2. Before loading a reference, name the unresolved decision it will answer. Search its headings or contents and read the smallest relevant section first.
+3. Distill loaded guidance into a short working checklist. Do not paste it into the plan, reread resolved sections, or load adjacent references without a new trigger.
+4. Load the next section only when inspection or evidence exposes another gap. Stop when implementation and acceptance decisions are supported.
+5. For release-critical work, load workflow, tooling and risk, contracts, and affected framework guidance sequentially. Do not omit a required gate merely to reduce context.
 
 | Trigger | Load |
 | --- | --- |

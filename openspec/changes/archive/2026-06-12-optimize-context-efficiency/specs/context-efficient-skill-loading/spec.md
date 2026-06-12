@@ -18,9 +18,27 @@ Each skill SHALL map task conditions to the smallest set of references needed to
 - **WHEN** a task includes payment and preview or upload work
 - **THEN** the agent loads tooling, risk, contracts, and workflow references needed for release evidence and rollback
 
+### Requirement: Reference guidance is disclosed progressively
+The skills SHALL direct agents to identify an unresolved decision, locate the smallest relevant reference section, distill its actionable rules, and expand context only when a new risk or evidence gap appears.
+
+#### Scenario: A reference contains several unrelated sections
+- **WHEN** one section answers the current implementation or acceptance decision
+- **THEN** the agent reads that section first instead of loading the full reference by default
+
+#### Scenario: Release-critical work needs several references
+- **WHEN** workflow, tooling, contracts, and framework guidance are all required
+- **THEN** the agent loads them sequentially as their decisions become active without omitting required gates
+
 ### Requirement: Core safety remains always loaded
 Entrypoint compression MUST retain profile escalation, evidence truthfulness, secret handling, release downgrade, UI runtime proof, and native-component layering requirements.
 
 #### Scenario: Detailed references are not yet loaded
 - **WHEN** an agent has loaded only the skill entrypoint
 - **THEN** it still knows not to claim unverified release success or close UI work without runtime evidence
+
+### Requirement: Delivery effectiveness takes precedence over context reduction
+Context budgets SHALL act as upper bounds against unnecessary growth, not as targets that override comprehension, risk detection, or acceptance quality.
+
+#### Scenario: A smaller entrypoint weakens task outcomes
+- **WHEN** behavior evals or representative task regression reveal weaker routing, safety, or acceptance behavior after compression
+- **THEN** maintainers restore the necessary instruction or improve its reference route even when context usage increases

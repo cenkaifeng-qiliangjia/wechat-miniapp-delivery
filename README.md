@@ -190,8 +190,10 @@ Skill 主入口只保留决策、风险升级和验收底线，详细工具、�
 - `wechat-miniapp-design/SKILL.md`：最多 1500 词、230 行
 - quick 任务只加载直接相关的窄 reference
 - release-critical 任务按风险加载工作流、工具、契约和框架 reference
+- reference 先通过目录或标题定位到相关章节；只有出现新的决策或证据缺口才继续扩展
 
 `scripts/validate_repo.py` 会阻止主入口超过预算；行为 eval 同时检查必需和禁止加载的 reference，避免为了省 token 丢失必要能力。
+预算是防止无效膨胀的上限，不是压缩目标；若真实任务回归显示理解、风险识别或验收质量下降，应恢复必要内容或调整路由。
 
 ## 资料来源
 

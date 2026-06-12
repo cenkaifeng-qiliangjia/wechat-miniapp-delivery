@@ -16,5 +16,5 @@
 ## 3. Completion
 
 - [x] 3.1 Run Skill Creator, behavior, installer, repository, OpenSpec, and sync validation
-- [ ] 3.2 Synchronize and push primary and fork
-- [ ] 3.3 Archive the OpenSpec change and verify final CI
+- [x] 3.2 Synchronize and push primary and fork
+- [x] 3.3 Archive the OpenSpec change and verify final CI

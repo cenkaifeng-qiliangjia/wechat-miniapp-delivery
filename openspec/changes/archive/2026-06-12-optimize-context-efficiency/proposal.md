@@ -5,8 +5,10 @@ The skills now enforce the right delivery behavior, but their always-loaded entr
 ## What Changes
 
 - Add effect-preserving context budgets for both skill entrypoints.
+- Treat those budgets as ceilings; behavior and acceptance quality override further token reduction.
 - Keep profile selection, safety invariants, and reference routing in `SKILL.md`; move detailed catalogs, role contracts, examples, and fallback design values to conditional references.
 - Add explicit reference-loading rules so quick tasks do not load release, framework, or example material they do not need.
+- Load relevant reference sections progressively as unresolved decisions and evidence gaps appear.
 - Add repository validation for entrypoint word and line budgets plus required behavioral markers.
 - Split large Python orchestration functions into single-purpose validation, parsing, and execution helpers without changing CLI behavior.
 - Preserve existing behavior evals, installer tests, and OpenSpec requirements as regression gates.

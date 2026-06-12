@@ -28,9 +28,15 @@ The delivery entrypoint will target at most 2,200 words and 300 lines. The desig
 
 Each entrypoint will include a compact loading table. Quick work loads only the directly relevant acceptance reference. Standard and release-critical work load contracts, orchestration, tooling, or framework references only when their trigger is present.
 
+References will also load progressively: identify the unresolved decision, search headings, read the smallest useful section, distill actionable rules, and expand only for a new risk or evidence gap. Release-critical guidance remains mandatory but loads in decision order.
+
 ### Preserve non-negotiable behavior in entrypoints
 
 Profile escalation, evidence requirements, secret safety, release truthfulness, UI runtime proof, and native-layer risk remain in always-loaded text.
+
+### Treat budgets as ceilings, not optimization scores
+
+Word and line limits prevent accidental growth. They do not reward further compression. Behavior contracts and representative task outcomes take precedence; regressions require restoring guidance or improving routing even if the entrypoint becomes larger.
 
 ### Move fallback design values to a bootstrap reference
 
